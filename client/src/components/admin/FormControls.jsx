@@ -1,0 +1,60 @@
+import { useRef } from "react";
+import http from "../../api/http";
+import toast from "react-hot-toast";
+
+export function Field({ label, children }) {
+  return <label className="block"><span className="label">{label}</span>{children}</label>;
+}
+
+export function TextInput({ label, ...props }) {
+  return <Field label={label}><input className="input" {...props} /></Field>;
+}
+
+export function TextArea({ label, ...props }) {
+  return <Field label={label}><textarea className="input min-h-28" {...props} /></Field>;
+}
+
+export function RichTextEditor({ label, value, onChange }) {
+  const ref = useRef(null);
+  function command(name) {
+    document.execCommand(name, false, null);
+    onChange(ref.current?.innerHTML || "");
+  }
+  return (
+    <div>
+      <span className="label">{label}</span>
+      <div className="mb-2 flex gap-2">
+        <button type="button" className="btn-secondary px-3 py-1" onClick={() => command("bold")}>B</button>
+        <button type="button" className="btn-secondary px-3 py-1 italic" onClick={() => command("italic")}>I</button>
+        <button type="button" className="btn-secondary px-3 py-1" onClick={() => command("insertUnorderedList")}>List</button>
+      </div>
+      <div
+        ref={ref}
+        className="min-h-40 rounded-md border border-slate-300 bg-white p-3 text-sm outline-none focus:border-brand focus:ring-2 focus:ring-teal-100"
+        contentEditable
+        suppressContentEditableWarning
+        onInput={(e) => onChange(e.currentTarget.innerHTML)}
+        dangerouslySetInnerHTML={{ __html: value || "" }}
+      />
+    </div>
+  );
+}
+
+export function ImageUpload({ label, value, onChange }) {
+  async function upload(file) {
+    if (!file) return;
+    const form = new FormData();
+    form.append("image", file);
+    const res = await http.post("/uploads", form, { headers: { "Content-Type": "multipart/form-data" } });
+    onChange(res.data.url);
+    toast.success("Image uploaded");
+  }
+  return (
+    <div>
+      <span className="label">{label}</span>
+      {value && <img src={value} alt="" className="mb-3 h-28 w-44 rounded-md object-cover" />}
+      <input className="input" type="file" accept="image/*" onChange={(e) => upload(e.target.files?.[0])} />
+      <input className="input mt-2" placeholder="Or paste image URL" value={value || ""} onChange={(e) => onChange(e.target.value)} />
+    </div>
+  );
+}
