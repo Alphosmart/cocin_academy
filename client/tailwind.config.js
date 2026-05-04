@@ -9,8 +9,8 @@ export default {
       },
       colors: {
         ink: "#172026",
-        brand: "#0f766e",
-        gold: "#d97706"
+        brand: "#60939e",
+        accent: "#752636"
       }
     }
   },

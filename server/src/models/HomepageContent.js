@@ -2,8 +2,8 @@ const mongoose = require("mongoose");
 
 const homepageContentSchema = new mongoose.Schema(
   {
-    heroTitle: { type: String, default: "Welcome to Bright Future Academy" },
-    heroSubtitle: { type: String, default: "A caring school where every child is known, challenged, and inspired." },
+    heroTitle: { type: String, default: "COCIN Academy" },
+    heroSubtitle: { type: String, default: "A Biblically-based learning community preparing the hearts, minds, and spirits of learners in the image of Jesus Christ." },
     heroImage: String,
     heroSlides: [
       {

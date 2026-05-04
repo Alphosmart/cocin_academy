@@ -12,6 +12,15 @@ function emptyFromFields(fields) {
   }, {});
 }
 
+function getErrorMessage(error) {
+  const errors = error.response?.data?.errors;
+  if (errors && typeof errors === "object") {
+    const messages = Object.values(errors).map((item) => item?.message).filter(Boolean);
+    if (messages.length > 0) return messages.join(", ");
+  }
+  return error.response?.data?.message || error.message || "Unable to save. Please check the form and try again.";
+}
+
 export default function ResourceManager({ title, endpoint, fields, columns = ["title"], singleton = false }) {
   const [items, setItems] = useState([]);
   const [form, setForm] = useState(emptyFromFields(fields));
@@ -20,11 +29,16 @@ export default function ResourceManager({ title, endpoint, fields, columns = ["t
   const [loading, setLoading] = useState(true);
 
   async function load() {
-    setLoading(true);
-    const res = await http.get(endpoint);
-    if (singleton) setForm(res.data);
-    else setItems(res.data);
-    setLoading(false);
+    try {
+      setLoading(true);
+      const res = await http.get(endpoint);
+      if (singleton) setForm(res.data);
+      else setItems(res.data);
+    } catch (error) {
+      toast.error(getErrorMessage(error));
+    } finally {
+      setLoading(false);
+    }
   }
 
   useEffect(() => { load(); }, [endpoint]);
@@ -60,32 +74,40 @@ export default function ResourceManager({ title, endpoint, fields, columns = ["t
 
   async function submit(e) {
     e.preventDefault();
-    const payload = { ...form };
-    ["tags"].forEach((key) => { if (typeof payload[key] === "string") payload[key] = payload[key].split(",").map((x) => x.trim()).filter(Boolean); });
-    ["coreValues", "requirements"].forEach((key) => { if (typeof payload[key] === "string") payload[key] = payload[key].split("\n").map((x) => x.trim()).filter(Boolean); });
-    if (singleton) await http.put(endpoint, payload);
-    else if (editing) await http.put(`${endpoint}/${editing}`, payload);
-    else await http.post(endpoint, payload);
-    toast.success("Saved successfully");
-    setEditing(null);
-    setForm(emptyFromFields(fields));
-    load();
+    try {
+      const payload = { ...form };
+      ["tags"].forEach((key) => { if (typeof payload[key] === "string") payload[key] = payload[key].split(",").map((x) => x.trim()).filter(Boolean); });
+      ["coreValues", "requirements"].forEach((key) => { if (typeof payload[key] === "string") payload[key] = payload[key].split("\n").map((x) => x.trim()).filter(Boolean); });
+      if (singleton) await http.put(endpoint, payload);
+      else if (editing) await http.put(`${endpoint}/${editing}`, payload);
+      else await http.post(endpoint, payload);
+      toast.success("Saved successfully");
+      setEditing(null);
+      setForm(emptyFromFields(fields));
+      load();
+    } catch (error) {
+      toast.error(getErrorMessage(error));
+    }
   }
 
   async function remove() {
-    await http.delete(`${endpoint}/${pendingDelete._id}`);
-    toast.success("Deleted");
-    setPendingDelete(null);
-    load();
+    try {
+      await http.delete(`${endpoint}/${pendingDelete._id}`);
+      toast.success("Deleted");
+      setPendingDelete(null);
+      load();
+    } catch (error) {
+      toast.error(getErrorMessage(error));
+    }
   }
 
   function input(field) {
     const value = form[field.name] ?? "";
-    if (field.type === "textarea") return <TextArea key={field.name} label={field.label} value={value} onChange={(e) => setValue(field.name, e.target.value)} />;
+    if (field.type === "textarea") return <TextArea key={field.name} label={field.label} value={value} onChange={(e) => setValue(field.name, e.target.value)} required={field.required} />;
     if (field.type === "richtext") return <RichTextEditor key={field.name} label={field.label} value={value} onChange={(v) => setValue(field.name, v)} />;
-    if (field.type === "image") return <ImageUpload key={field.name} label={field.label} value={value} onChange={(v) => setValue(field.name, v)} />;
+    if (field.type === "image") return <ImageUpload key={field.name} label={field.label} value={value} onChange={(v) => setValue(field.name, v)} required={field.required} />;
     if (field.type === "checkbox") return <label key={field.name} className="flex items-center gap-2 text-sm"><input type="checkbox" checked={Boolean(form[field.name])} onChange={(e) => setValue(field.name, e.target.checked)} /> {field.label}</label>;
-    if (field.type === "select") return <label key={field.name} className="block"><span className="label">{field.label}</span><select className="input" value={value} onChange={(e) => setValue(field.name, e.target.value)}>{field.options.map((o) => <option key={o} value={o}>{o}</option>)}</select></label>;
+    if (field.type === "select") return <label key={field.name} className="block"><span className="label">{field.label}</span><select className="input" value={value} onChange={(e) => setValue(field.name, e.target.value)} required={field.required}>{field.options.map((o) => <option key={o} value={o}>{o}</option>)}</select></label>;
     if (field.type === "repeatable") {
       const rows = Array.isArray(value) ? value : [];
       return (
@@ -117,7 +139,7 @@ export default function ResourceManager({ title, endpoint, fields, columns = ["t
         </div>
       );
     }
-    return <TextInput key={field.name} label={field.label} type={field.type || "text"} value={value} onChange={(e) => setValue(field.name, e.target.value)} />;
+    return <TextInput key={field.name} label={field.label} type={field.type || "text"} value={value} onChange={(e) => setValue(field.name, e.target.value)} required={field.required} />;
   }
 
   return (

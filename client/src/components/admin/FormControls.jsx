@@ -30,7 +30,7 @@ export function RichTextEditor({ label, value, onChange }) {
       </div>
       <div
         ref={ref}
-        className="min-h-40 rounded-md border border-slate-300 bg-white p-3 text-sm outline-none focus:border-brand focus:ring-2 focus:ring-teal-100"
+        className="min-h-40 rounded-md border border-slate-300 bg-white p-3 text-sm outline-none focus:border-brand focus:ring-2 focus:ring-[#d7e5e8]"
         contentEditable
         suppressContentEditableWarning
         onInput={(e) => onChange(e.currentTarget.innerHTML)}
@@ -40,7 +40,7 @@ export function RichTextEditor({ label, value, onChange }) {
   );
 }
 
-export function ImageUpload({ label, value, onChange }) {
+export function ImageUpload({ label, value, onChange, required = false }) {
   async function upload(file) {
     if (!file) return;
     const form = new FormData();
@@ -54,7 +54,7 @@ export function ImageUpload({ label, value, onChange }) {
       <span className="label">{label}</span>
       {value && <img src={value} alt="" className="mb-3 h-28 w-44 rounded-md object-cover" />}
       <input className="input" type="file" accept="image/*" onChange={(e) => upload(e.target.files?.[0])} />
-      <input className="input mt-2" placeholder="Or paste image URL" value={value || ""} onChange={(e) => onChange(e.target.value)} />
+      <input className="input mt-2" placeholder="Or paste image URL" value={value || ""} onChange={(e) => onChange(e.target.value)} required={required} />
     </div>
   );
 }

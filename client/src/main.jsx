@@ -5,6 +5,12 @@ import { Toaster } from "react-hot-toast";
 import App from "./App";
 import { AuthProvider } from "./context/AuthContext";
 import "./styles.css";
+import logoUrl from "./pages/public/assets/logo.jpeg";
+
+const favicon = document.createElement("link");
+favicon.rel = "icon";
+favicon.href = logoUrl;
+document.head.appendChild(favicon);
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>

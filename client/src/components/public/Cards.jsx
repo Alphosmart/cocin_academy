@@ -6,7 +6,7 @@ export function BlogCard({ post }) {
     <article className="card overflow-hidden">
       <img src={post.featuredImage || "https://placehold.co/800x500"} alt="" className="h-48 w-full object-cover" />
       <div className="p-5">
-        <p className="text-xs font-semibold uppercase text-gold">{post.category}</p>
+        <p className="text-xs font-semibold uppercase text-accent">{post.category}</p>
         <h3 className="mt-2 text-xl font-bold text-slate-950">{post.title}</h3>
         <p className="mt-2 line-clamp-3 text-sm text-slate-600">{post.excerpt}</p>
         <Link className="mt-4 inline-flex text-sm font-semibold text-brand" to={`/blog/${post.slug}`}>Read more</Link>

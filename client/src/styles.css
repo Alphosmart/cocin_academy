@@ -21,7 +21,7 @@ body {
 }
 
 .btn-primary {
-  @apply btn bg-brand text-white hover:bg-teal-800 focus:ring-brand;
+  @apply btn bg-brand text-white hover:bg-[#4f7f88] focus:ring-brand;
 }
 
 .btn-secondary {
@@ -29,7 +29,7 @@ body {
 }
 
 .input {
-  @apply w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm outline-none focus:border-brand focus:ring-2 focus:ring-teal-100;
+  @apply w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm outline-none focus:border-brand focus:ring-2 focus:ring-[#d7e5e8];
 }
 
 .label {
