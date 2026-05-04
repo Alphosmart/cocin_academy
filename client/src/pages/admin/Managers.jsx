@@ -3,7 +3,7 @@ import ResourceManager from "../../components/admin/ResourceManager";
 export const settingsFields = [
   { name: "schoolName", label: "School name" }, { name: "motto", label: "Motto" }, { name: "logo", label: "Logo", type: "image" }, { name: "favicon", label: "Favicon", type: "image" },
   { name: "primaryColor", label: "Primary color", type: "color" }, { name: "secondaryColor", label: "Secondary color", type: "color" }, { name: "email", label: "Email" }, { name: "phone", label: "Phone" },
-  { name: "whatsapp", label: "WhatsApp" }, { name: "address", label: "Address", type: "textarea" }, { name: "portalUrl", label: "Portal URL" }, { name: "facebookUrl", label: "Facebook URL" },
+  { name: "whatsapp", label: "WhatsApp" }, { name: "address", label: "Address", type: "textarea" }, { name: "facebookUrl", label: "Facebook URL" },
   { name: "instagramUrl", label: "Instagram URL" }, { name: "youtubeUrl", label: "YouTube URL" }, { name: "tiktokUrl", label: "TikTok URL" }, { name: "xUrl", label: "X URL" },
   { name: "googleMapEmbed", label: "Google Map embed", type: "textarea" }, { name: "footerText", label: "Footer text", type: "textarea" }, { name: "seoTitle", label: "SEO title" }, { name: "seoDescription", label: "SEO description", type: "textarea" }
 ];

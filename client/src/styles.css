@@ -21,15 +21,15 @@ body {
 }
 
 .btn-primary {
-  @apply btn bg-brand text-white hover:bg-[#4f7f88] focus:ring-brand;
+  @apply btn bg-brand text-white hover:bg-[#24234d] focus:ring-brand;
 }
 
 .btn-secondary {
-  @apply btn border border-slate-300 bg-white text-slate-800 hover:bg-slate-50 focus:ring-slate-400;
+  @apply btn border border-brand/35 bg-white text-brand hover:bg-[#eef8fc] focus:ring-brand;
 }
 
 .input {
-  @apply w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm outline-none focus:border-brand focus:ring-2 focus:ring-[#d7e5e8];
+  @apply w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm outline-none focus:border-brand focus:ring-2 focus:ring-[#dff4fc];
 }
 
 .label {

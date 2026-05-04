@@ -1,6 +1,6 @@
 import logoUrl from "../pages/public/assets/logo.jpeg";
 
-const image = (text) => `https://placehold.co/1200x800/60939e/ffffff?text=${encodeURIComponent(text)}`;
+const image = (text) => `https://placehold.co/1200x800/302F62/ffffff?text=${encodeURIComponent(text)}`;
 
 const futureDate = (days) => new Date(Date.now() + days * 24 * 60 * 60 * 1000).toISOString();
 
@@ -9,16 +9,15 @@ export const defaultSettings = {
   motto: "Building lives on the Solid Rock",
   logo: logoUrl,
   favicon: logoUrl,
-  primaryColor: "#60939e",
-  secondaryColor: "#752636",
+  primaryColor: "#302F62",
+  secondaryColor: "#E72125",
   email: "cocinacademy07@gmail.com",
   phone: "07046272361, 09018690022, 08180705629",
   whatsapp: "+2347046272361",
   address: "900241 Cadastral Street, Plot 5/7 Durumi District, Area 1, F.C.T. Abuja",
-  portalUrl: "#",
   facebookUrl: "https://www.facebook.com/cocinacademyabuja1",
   instagramUrl: "https://www.instagram.com/cocinacademy/",
-  youtubeUrl: "https://youtube.com",
+  youtubeUrl: "",
   googleMapEmbed: "",
   footerText: "Training children through total education, one child at a time for Christ.",
   seoTitle: "COCIN Academy Abuja",
@@ -139,17 +138,16 @@ export const defaultEvents = [
 ];
 
 export const defaultTestimonials = [
-  { _id: "default-testimonial-parent", name: "Mrs. E. Johnson", role: "Parent", message: "The teachers are attentive, and my child has grown in confidence and discipline." },
-  { _id: "default-testimonial-alumnus", name: "Daniel A.", role: "Alumnus", message: "Bright Future gave me the habits and courage I still rely on today." }
+  { _id: "default-testimonial-parent", name: "COCIN Academy Parent", role: "Parent", message: "The teachers are attentive, and my child has grown in confidence, discipline, and love for God's Word." },
+  { _id: "default-testimonial-student", name: "COCIN Academy Learner", role: "Student", message: "The school helps me grow in my academics, character, and faith." }
 ];
 
 export const defaultStaff = [
-  { _id: "default-staff-principal", name: "Mrs. Ada Williams", role: "Principal", qualification: "M.Ed Educational Leadership", biography: "Ada leads with warmth, clarity, and a deep belief in every learner.", image: image("Principal") },
-  { _id: "default-staff-academics", name: "Mr. Tunde Okafor", role: "Head of Academics", qualification: "B.Sc, PGDE", biography: "Tunde coordinates curriculum quality and teacher development.", image: image("Academics") }
+  { _id: "default-staff-principal", name: "School Principal", role: "Principal", qualification: "COCIN Academy Leadership", biography: "The Principal leads the school community in Christian education, discipline, academic growth, and partnership with families.", image: image("Principal") },
+  { _id: "default-staff-chaplain", name: "School Chaplain", role: "Chaplain", qualification: "COCIN Church Ministry", biography: "The Chaplain supports chapel, discipleship, Bible memory work, and spiritual growth across the school community.", image: image("Chaplain") }
 ];
 
 export const defaultFaqs = [
   { _id: "default-faq-apply", question: "How do I apply?", answer: "Complete the enquiry form or contact admissions to schedule a visit.", category: "Admissions" },
-  { _id: "default-faq-portal", question: "Does the school have a portal?", answer: "Yes. Parents and students can use the School Portal button to access the existing portal.", category: "Portal" },
   { _id: "default-faq-tour", question: "Can I book a school tour?", answer: "Yes. Send a message through the contact form or call the school office.", category: "Admissions" }
 ];

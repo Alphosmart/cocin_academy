@@ -6,7 +6,6 @@ import Home from "./pages/public/Home";
 import SimplePage from "./pages/public/SimplePage";
 import Academics from "./pages/public/Academics";
 import Admissions from "./pages/public/Admissions";
-import Portal from "./pages/public/Portal";
 import Blog from "./pages/public/Blog";
 import SingleBlog from "./pages/public/SingleBlog";
 import Gallery from "./pages/public/Gallery";
@@ -43,7 +42,6 @@ export default function App() {
         <Route path="about" element={<SimplePage slug="about" />} />
         <Route path="academics" element={<Academics />} />
         <Route path="admissions" element={<Admissions />} />
-        <Route path="portal" element={<Portal />} />
         <Route path="blog" element={<Blog />} />
         <Route path="blog/:slug" element={<SingleBlog />} />
         <Route path="gallery" element={<Gallery />} />

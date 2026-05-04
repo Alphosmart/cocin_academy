@@ -14,7 +14,7 @@ const AcademicProgram = require("../src/models/AcademicProgram");
 const AdmissionContent = require("../src/models/AdmissionContent");
 const FAQ = require("../src/models/FAQ");
 
-const placeholder = (text) => `https://placehold.co/1200x800/60939e/ffffff?text=${encodeURIComponent(text)}`;
+const placeholder = (text) => `https://placehold.co/1200x800/302F62/ffffff?text=${encodeURIComponent(text)}`;
 
 async function seed() {
   await connectDB();
@@ -45,16 +45,15 @@ async function seed() {
     motto: "Building lives on the Solid Rock",
     logo: "",
     favicon: "",
-    primaryColor: "#60939e",
-    secondaryColor: "#752636",
+    primaryColor: "#302F62",
+    secondaryColor: "#E72125",
     email: "cocinacademy07@gmail.com",
     phone: "07046272361, 09018690022, 08180705629",
     whatsapp: "+2347046272361",
     address: "900241 Cadastral Street, Plot 5/7 Durumi District, Area 1, F.C.T. Abuja",
-    portalUrl: "https://portal.example.com",
     facebookUrl: "https://www.facebook.com/cocinacademyabuja1",
     instagramUrl: "https://www.instagram.com/cocinacademy/",
-    youtubeUrl: "https://youtube.com",
+    youtubeUrl: "",
     googleMapEmbed: "",
     footerText: "Training children through total education, one child at a time for Christ.",
     seoTitle: "COCIN Academy Abuja",
@@ -173,19 +172,18 @@ async function seed() {
   ]);
 
   await StaffMember.create([
-    { name: "Mrs. Ada Williams", role: "Principal", qualification: "M.Ed Educational Leadership", biography: "Ada leads with warmth, clarity, and a deep belief in every learner.", image: placeholder("Principal"), order: 1 },
-    { name: "Mr. Tunde Okafor", role: "Head of Academics", qualification: "B.Sc, PGDE", biography: "Tunde coordinates curriculum quality and teacher development.", image: placeholder("Academics"), order: 2 }
+    { name: "School Principal", role: "Principal", qualification: "COCIN Academy Leadership", biography: "The Principal leads the school community in Christian education, discipline, academic growth, and partnership with families.", image: placeholder("Principal"), order: 1 },
+    { name: "School Chaplain", role: "Chaplain", qualification: "COCIN Church Ministry", biography: "The Chaplain supports chapel, discipleship, Bible memory work, and spiritual growth across the school community.", image: placeholder("Chaplain"), order: 2 }
   ]);
 
   await Testimonial.create([
-    { name: "Mrs. E. Johnson", role: "Parent", message: "The teachers are attentive, and my child has grown in confidence and discipline.", image: placeholder("Parent") },
-    { name: "Daniel A.", role: "Alumnus", message: "Bright Future gave me the habits and courage I still rely on today.", image: placeholder("Alumnus") }
+    { name: "COCIN Academy Parent", role: "Parent", message: "The teachers are attentive, and my child has grown in confidence, discipline, and love for God's Word.", image: placeholder("Parent") },
+    { name: "COCIN Academy Learner", role: "Student", message: "The school helps me grow in my academics, character, and faith.", image: placeholder("Learner") }
   ]);
 
   await FAQ.create([
     { question: "How do I apply?", answer: "Complete the enquiry form or contact admissions to schedule a visit.", category: "Admissions", order: 1 },
-    { question: "Does the school have a portal?", answer: "Yes. Parents and students can use the School Portal button to access the existing portal.", category: "Portal", order: 2 },
-    { question: "Can I book a school tour?", answer: "Yes. Send a message through the contact form or call the school office.", category: "Admissions", order: 3 }
+    { question: "Can I book a school tour?", answer: "Yes. Send a message through the contact form or call the school office.", category: "Admissions", order: 2 }
   ]);
 
   console.log("Seed completed");

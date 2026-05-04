@@ -149,7 +149,6 @@ export default function Home() {
             <p className="mt-5 max-w-2xl text-lg text-slate-100">{slide.subtitle}</p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Link className="btn-primary" to={slide.ctaLink || "/admissions"}>{slide.ctaLabel || "Admissions"}</Link>
-              <a className="btn border-white/70 bg-white/10 text-white hover:bg-white/20 focus:ring-white" href={settings?.portalUrl} target="_blank" rel="noreferrer">School Portal</a>
             </div>
           </div>
           {heroSlides.length > 1 && (
@@ -200,7 +199,7 @@ export default function Home() {
         <div className="container-pad grid gap-8 lg:grid-cols-2">
           <div className="rounded-lg bg-brand p-8 text-white">
             <div className="flex items-center gap-3"><ShieldCheck /><h2 className="text-3xl font-black">Our Mission</h2></div>
-            <p className="mt-4 leading-7 text-[#edf5f6]">
+            <p className="mt-4 leading-7 text-[#eef8fc]">
               The school seeks to build lives on the Solid Rock, Christ Jesus our Lord, and to be involved in true
               Christian education for children, meeting their spiritual, social, mental, and physical needs.
             </p>
@@ -288,7 +287,7 @@ export default function Home() {
           </div>
         </div>
       </section>
-      <section className="container-pad py-16"><div className="card flex flex-col justify-between gap-6 bg-brand p-8 text-white md:flex-row md:items-center"><div><h2 className="text-3xl font-bold">{data.admissionsCtaTitle}</h2><p className="mt-2 text-[#edf5f6]">{data.admissionsCtaText}</p></div><Link className="btn bg-white text-brand hover:bg-slate-100" to="/admissions">Apply now</Link></div></section>
+      <section className="container-pad py-16"><div className="card flex flex-col justify-between gap-6 bg-brand p-8 text-white md:flex-row md:items-center"><div><h2 className="text-3xl font-bold">{data.admissionsCtaTitle}</h2><p className="mt-2 text-[#eef8fc]">{data.admissionsCtaText}</p></div><Link className="btn bg-white text-brand hover:bg-[#eef8fc]" to="/admissions">Apply now</Link></div></section>
       <section className="bg-white py-16">
         <div className="container-pad grid gap-8 lg:grid-cols-[0.8fr_1.2fr]">
           <div>
