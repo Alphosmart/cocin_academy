@@ -3,11 +3,11 @@ const ContactMessage = require("../models/ContactMessage");
 const asyncHandler = require("../middleware/asyncHandler");
 
 const contactSchema = z.object({
-  fullName: z.string().min(2),
-  email: z.string().email(),
-  phone: z.string().optional().default(""),
-  subject: z.string().min(2),
-  message: z.string().min(5)
+  fullName: z.string().trim().min(2).max(120),
+  email: z.string().trim().email().max(180),
+  phone: z.string().trim().max(40).optional().default(""),
+  subject: z.string().trim().min(2).max(160),
+  message: z.string().trim().min(5).max(3000)
 });
 
 exports.createMessage = asyncHandler(async (req, res) => {

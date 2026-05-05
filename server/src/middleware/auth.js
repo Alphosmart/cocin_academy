@@ -1,10 +1,12 @@
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
 const asyncHandler = require("./asyncHandler");
+const { getAuthCookie } = require("../utils/authCookie");
+const { noStore } = require("./security");
 
 const protect = asyncHandler(async (req, res, next) => {
   const header = req.headers.authorization || "";
-  const token = header.startsWith("Bearer ") ? header.slice(7) : null;
+  const token = header.startsWith("Bearer ") ? header.slice(7) : getAuthCookie(req);
   if (!token) {
     const error = new Error("Authentication required");
     error.statusCode = 401;
@@ -18,7 +20,7 @@ const protect = asyncHandler(async (req, res, next) => {
     throw error;
   }
   req.user = user;
-  next();
+  noStore(req, res, next);
 });
 
 const adminOnly = (req, res, next) => {
@@ -32,7 +34,7 @@ const adminOnly = (req, res, next) => {
 
 const optionalAuth = asyncHandler(async (req, res, next) => {
   const header = req.headers.authorization || "";
-  const token = header.startsWith("Bearer ") ? header.slice(7) : null;
+  const token = header.startsWith("Bearer ") ? header.slice(7) : getAuthCookie(req);
   if (!token) return next();
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);

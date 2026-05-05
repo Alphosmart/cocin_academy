@@ -8,7 +8,8 @@ const upload = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: 5 * 1024 * 1024 },
   fileFilter(req, file, cb) {
-    if (!file.mimetype.startsWith("image/")) return cb(new Error("Only image uploads are allowed"));
+    const allowedTypes = ["image/jpeg", "image/png", "image/webp", "image/gif"];
+    if (!allowedTypes.includes(file.mimetype)) return cb(new Error("Only JPG, PNG, WebP, and GIF uploads are allowed"));
     cb(null, true);
   }
 });
@@ -17,8 +18,7 @@ const extensionByMime = {
   "image/jpeg": ".jpg",
   "image/png": ".png",
   "image/webp": ".webp",
-  "image/gif": ".gif",
-  "image/svg+xml": ".svg"
+  "image/gif": ".gif"
 };
 
 async function saveLocalUpload(file, baseUrl) {
@@ -31,6 +31,9 @@ async function saveLocalUpload(file, baseUrl) {
 
 function uploadToCloudinary(file, folder = "school-website", baseUrl = "") {
   if (!configured) {
+    if (process.env.NODE_ENV === "production") {
+      throw new Error("Cloudinary must be configured for production uploads");
+    }
     return saveLocalUpload(file, baseUrl);
   }
   return new Promise((resolve, reject) => {

@@ -8,25 +8,19 @@ export function AuthProvider({ children }) {
   const [booting, setBooting] = useState(true);
 
   useEffect(() => {
-    const token = localStorage.getItem("school_admin_token");
-    if (!token) {
-      setBooting(false);
-      return;
-    }
     http.get("/auth/me")
       .then((res) => setUser(res.data.user))
-      .catch(() => localStorage.removeItem("school_admin_token"))
+      .catch(() => setUser(null))
       .finally(() => setBooting(false));
   }, []);
 
   async function login(email, password) {
     const res = await http.post("/auth/login", { email, password });
-    localStorage.setItem("school_admin_token", res.data.token);
     setUser(res.data.user);
   }
 
-  function logout() {
-    localStorage.removeItem("school_admin_token");
+  async function logout() {
+    await http.post("/auth/logout").catch(() => null);
     setUser(null);
   }
 

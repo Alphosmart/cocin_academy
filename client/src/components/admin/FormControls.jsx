@@ -53,7 +53,7 @@ export function ImageUpload({ label, value, onChange, required = false }) {
     <div>
       <span className="label">{label}</span>
       {value && <img src={value} alt="" className="mb-3 h-28 w-44 rounded-md object-cover" />}
-      <input className="input" type="file" accept="image/*" onChange={(e) => upload(e.target.files?.[0])} />
+      <input className="input" type="file" accept="image/jpeg,image/png,image/webp,image/gif" onChange={(e) => upload(e.target.files?.[0])} />
       <input className="input mt-2" placeholder="Or paste image URL" value={value || ""} onChange={(e) => onChange(e.target.value)} required={required} />
     </div>
   );

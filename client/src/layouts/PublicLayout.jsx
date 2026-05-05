@@ -65,7 +65,6 @@ export default function PublicLayout() {
           <div>
             <h3 className="font-semibold text-slate-950">Quick Links</h3>
             <div className="mt-3 grid gap-2 text-sm">{links.slice(1, 6).map(([label, to]) => <Link key={to} to={to} className="text-slate-600 hover:text-brand">{label}</Link>)}</div>
-            <Link to="/admin/login" className="mt-3 inline-flex text-sm font-medium text-slate-500 hover:text-brand">Admin Login</Link>
           </div>
           <div>
             <h3 className="font-semibold text-slate-950">Contact</h3>

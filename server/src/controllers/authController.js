@@ -2,6 +2,7 @@ const { z } = require("zod");
 const User = require("../models/User");
 const asyncHandler = require("../middleware/asyncHandler");
 const signToken = require("../utils/token");
+const { clearAuthCookie, setAuthCookie } = require("../utils/authCookie");
 
 const loginSchema = z.object({
   email: z.string().email(),
@@ -14,10 +15,16 @@ exports.login = asyncHandler(async (req, res) => {
   if (!user || !(await user.matchPassword(password))) {
     return res.status(401).json({ message: "Invalid email or password" });
   }
+  const token = signToken(user);
+  setAuthCookie(res, token);
   res.json({
-    token: signToken(user),
     user: { id: user._id, name: user.name, email: user.email, role: user.role }
   });
+});
+
+exports.logout = asyncHandler(async (req, res) => {
+  clearAuthCookie(res);
+  res.json({ message: "Logged out successfully" });
 });
 
 exports.me = asyncHandler(async (req, res) => {

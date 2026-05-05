@@ -1,10 +1,15 @@
 const asyncHandler = require("../middleware/asyncHandler");
 const { sanitizeObject } = require("../utils/sanitizeHtml");
 
+function escapeRegex(value) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
 function buildQuery(req) {
   const query = {};
   if (req.query.search) {
-    const search = new RegExp(req.query.search, "i");
+    const searchTerm = String(req.query.search).trim().slice(0, 80);
+    const search = new RegExp(escapeRegex(searchTerm), "i");
     query.$or = [{ title: search }, { name: search }, { category: search }, { excerpt: search }];
   }
   if (req.query.category) query.category = req.query.category;
