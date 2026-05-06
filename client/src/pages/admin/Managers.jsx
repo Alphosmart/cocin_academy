@@ -9,12 +9,12 @@ export const settingsFields = [
 ];
 
 export const homepageFields = [
-  { name: "heroTitle", label: "Hero title" }, { name: "heroSubtitle", label: "Hero subtitle", type: "textarea" }, { name: "heroImage", label: "Hero image", type: "image" },
-  { name: "heroSlides", label: "Hero carousel slides", type: "repeatable", fields: [{ name: "title", label: "Title" }, { name: "subtitle", label: "Subtitle", type: "textarea" }, { name: "image", label: "Image URL" }, { name: "ctaLabel", label: "Button label" }, { name: "ctaLink", label: "Button link" }] },
-  { name: "aboutPreview", label: "About preview", type: "textarea" },
-  { name: "whyChooseUs", label: "Why Choose Us items", type: "repeatable", fields: [{ name: "title", label: "Title" }, { name: "description", label: "Description", type: "textarea" }] },
-  { name: "admissionsCtaTitle", label: "Admissions CTA title" }, { name: "admissionsCtaText", label: "Admissions CTA text", type: "textarea" },
-  { name: "seoTitle", label: "SEO title" }, { name: "seoDescription", label: "SEO description", type: "textarea" }
+  { name: "heroTitle", label: "Hero title", group: "Main Hero" }, { name: "heroSubtitle", label: "Hero subtitle", type: "textarea", group: "Main Hero" }, { name: "heroMedia", label: "Hero media", type: "media", mediaTypeField: "heroMediaType", group: "Main Hero" }, { name: "heroMediaActive", label: "Show main hero media", type: "checkbox", defaultValue: true, group: "Main Hero" },
+  { name: "heroSlides", label: "Hero carousel slides", type: "repeatable", group: "Hero Carousel", fields: [{ name: "isActive", label: "Active", type: "checkbox", defaultValue: true }, { name: "title", label: "Title" }, { name: "subtitle", label: "Subtitle", type: "textarea" }, { name: "media", label: "Media", type: "media", mediaTypeField: "mediaType" }, { name: "ctaLabel", label: "Button label" }, { name: "ctaLink", label: "Button link" }] },
+  { name: "aboutPreview", label: "About preview", type: "textarea", group: "About Preview" },
+  { name: "whyChooseUs", label: "Why Choose Us items", type: "repeatable", group: "Why Choose Us", fields: [{ name: "title", label: "Title" }, { name: "description", label: "Description", type: "textarea" }] },
+  { name: "admissionsCtaTitle", label: "Admissions CTA title", group: "Admissions CTA" }, { name: "admissionsCtaText", label: "Admissions CTA text", type: "textarea", group: "Admissions CTA" },
+  { name: "seoTitle", label: "SEO title", group: "SEO" }, { name: "seoDescription", label: "SEO description", type: "textarea", group: "SEO" }
 ];
 
 export const blogFields = [

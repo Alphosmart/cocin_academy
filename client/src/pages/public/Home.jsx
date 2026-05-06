@@ -89,6 +89,14 @@ const fees = [
 const subjects = ["Math", "English", "Word Building", "Literature and Creative Writing", "Science", "Social Studies", "Bible Reading"];
 const activities = ["Arts and crafts", "Worship and choir", "Sports huddles", "Press club", "ICT and web design", "Community service projects"];
 const schoolEvents = ["Yearly inter-house sports week", "Cultural Christmas program", "Field trips", "National, Regional, and International Student Conventions", "COCIN Academy yearly thanksgiving Sunday service", "Graduation and special resurrection programs"];
+const IMAGE_SLIDE_MS = 6500;
+const VIDEO_FALLBACK_MS = 45000;
+
+function normalizeHeroSlide(slide = {}) {
+  const media = slide.media || slide.video || slide.image || "";
+  const mediaType = slide.mediaType || (slide.video ? "video" : "image");
+  return { ...slide, media, mediaType };
+}
 
 export default function Home() {
   const { settings } = useOutletContext();
@@ -102,15 +110,19 @@ export default function Home() {
 
   const data = home.data || defaultHomepage;
   const heroSlides = useMemo(() => {
-    const slides = Array.isArray(data.heroSlides) ? data.heroSlides.filter((slide) => slide.title || slide.subtitle || slide.image) : [];
-    if (slides.length > 0) return slides;
-    return [{
+    const slides = Array.isArray(data.heroSlides) ? data.heroSlides.map(normalizeHeroSlide).filter((slide) => slide.isActive !== false && (slide.title || slide.subtitle || slide.media)) : [];
+    const primarySlide = normalizeHeroSlide({
       title: data.heroTitle,
       subtitle: data.heroSubtitle,
+      media: data.heroMediaActive === false ? "" : data.heroMedia || data.heroVideo || data.heroImage,
+      mediaType: data.heroMediaType || (data.heroVideo ? "video" : "image"),
       image: data.heroImage,
       ctaLabel: "Admissions",
       ctaLink: "/admissions"
-    }];
+    });
+    if (primarySlide.media) return [primarySlide, ...slides];
+    if (slides.length > 0) return slides;
+    return [primarySlide];
   }, [data]);
   const slide = heroSlides[activeSlide] || heroSlides[0] || {};
 
@@ -120,11 +132,17 @@ export default function Home() {
 
   useEffect(() => {
     if (heroSlides.length < 2) return undefined;
-    const timer = window.setInterval(() => {
+    if (slide.mediaType === "video" && slide.media) {
+      const timer = window.setTimeout(() => {
+        setActiveSlide((current) => (current + 1) % heroSlides.length);
+      }, VIDEO_FALLBACK_MS);
+      return () => window.clearTimeout(timer);
+    }
+    const timer = window.setTimeout(() => {
       setActiveSlide((current) => (current + 1) % heroSlides.length);
-    }, 6500);
-    return () => window.clearInterval(timer);
-  }, [heroSlides.length]);
+    }, IMAGE_SLIDE_MS);
+    return () => window.clearTimeout(timer);
+  }, [heroSlides.length, slide.media, slide.mediaType]);
 
   function goToSlide(index) {
     setActiveSlide((index + heroSlides.length) % heroSlides.length);
@@ -139,7 +157,23 @@ export default function Home() {
     <>
       <section className="relative overflow-hidden bg-slate-950 text-white">
         <div className="absolute inset-0">
-          <img src={slide.image || "https://placehold.co/1600x900"} alt="" className="h-full w-full object-cover opacity-55 transition-opacity duration-500" />
+          {slide.mediaType === "video" && slide.media ? (
+            <video
+              key={slide.media}
+              className="h-full w-full object-cover opacity-55 transition-opacity duration-500"
+              poster={slide.image || undefined}
+              autoPlay
+              muted
+              playsInline
+              onEnded={() => {
+                if (heroSlides.length > 1) goToSlide(activeSlide + 1);
+              }}
+            >
+              <source src={slide.media} />
+            </video>
+          ) : (
+            <img src={slide.media || slide.image || "https://placehold.co/1600x900"} alt="" className="h-full w-full object-cover opacity-55 transition-opacity duration-500" />
+          )}
           <div className="absolute inset-0 bg-slate-950/45" />
         </div>
         <div className="container-pad relative flex min-h-[620px] items-center py-16">

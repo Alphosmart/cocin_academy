@@ -40,21 +40,77 @@ export function RichTextEditor({ label, value, onChange }) {
   );
 }
 
-export function ImageUpload({ label, value, onChange, required = false }) {
+function MediaUpload({ accept, label, placeholder, preview, successMessage, value, onChange, required = false }) {
   async function upload(file) {
     if (!file) return;
     const form = new FormData();
     form.append("image", file);
     const res = await http.post("/uploads", form, { headers: { "Content-Type": "multipart/form-data" } });
     onChange(res.data.url);
-    toast.success("Image uploaded");
+    toast.success(successMessage);
   }
   return (
     <div>
       <span className="label">{label}</span>
-      {value && <img src={value} alt="" className="mb-3 h-28 w-44 rounded-md object-cover" />}
-      <input className="input" type="file" accept="image/jpeg,image/png,image/webp,image/gif" onChange={(e) => upload(e.target.files?.[0])} />
-      <input className="input mt-2" placeholder="Or paste image URL" value={value || ""} onChange={(e) => onChange(e.target.value)} required={required} />
+      {preview(value)}
+      <input className="input" type="file" accept={accept} onChange={(e) => upload(e.target.files?.[0])} />
+      <input className="input mt-2" placeholder={placeholder} value={value || ""} onChange={(e) => onChange(e.target.value)} required={required} />
+    </div>
+  );
+}
+
+export function ImageUpload(props) {
+  return (
+    <MediaUpload
+      {...props}
+      accept="image/jpeg,image/png,image/webp,image/gif"
+      placeholder="Or paste image URL"
+      successMessage="Image uploaded"
+      preview={(value) => value && <img src={value} alt="" className="mb-3 h-28 w-44 rounded-md object-cover" />}
+    />
+  );
+}
+
+export function VideoUpload(props) {
+  return (
+    <MediaUpload
+      {...props}
+      accept="video/mp4,video/webm,video/quicktime"
+      placeholder="Or paste video URL"
+      successMessage="Video uploaded"
+      preview={(value) => value && <video src={value} className="mb-3 h-28 w-44 rounded-md object-cover" muted controls />}
+    />
+  );
+}
+
+export function MixedMediaUpload({ label, value, mediaType, onChange, required = false }) {
+  async function upload(file) {
+    if (!file) return;
+    const form = new FormData();
+    form.append("image", file);
+    const res = await http.post("/uploads", form, { headers: { "Content-Type": "multipart/form-data" } });
+    onChange(res.data.url, res.data.resourceType === "video" ? "video" : "image");
+    toast.success(`${res.data.resourceType === "video" ? "Video" : "Image"} uploaded`);
+  }
+
+  const previewType = mediaType || (/\.(mp4|webm|mov)(\?|#|$)/i.test(value || "") ? "video" : "image");
+
+  return (
+    <div>
+      <span className="label">{label}</span>
+      {value && previewType === "video" && <video src={value} className="mb-3 h-28 w-44 rounded-md object-cover" muted controls />}
+      {value && previewType !== "video" && <img src={value} alt="" className="mb-3 h-28 w-44 rounded-md object-cover" />}
+      <input className="input" type="file" accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm,video/quicktime" onChange={(e) => upload(e.target.files?.[0])} />
+      <input className="input mt-2" placeholder="Or paste image/video URL" value={value || ""} onChange={(e) => onChange(e.target.value, previewType)} required={required} />
+      <select className="input mt-2" value={previewType} onChange={(e) => onChange(value || "", e.target.value)}>
+        <option value="image">Image</option>
+        <option value="video">Video</option>
+      </select>
+      {value && (
+        <button type="button" className="mt-2 text-sm font-medium text-red-600" onClick={() => onChange("", previewType)}>
+          Remove media
+        </button>
+      )}
     </div>
   );
 }
