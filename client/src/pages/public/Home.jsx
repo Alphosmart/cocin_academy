@@ -77,15 +77,6 @@ const admissionsSteps = [
   "Receive admission confirmation."
 ];
 
-const fees = [
-  ["Prekindergarten", "N237,000"],
-  ["Reading Readiness", "N272,000"],
-  ["Learning to Read/Grade 1", "N281,000"],
-  ["Grades 2-6", "N312,500"],
-  ["Middle School", "N339,500"],
-  ["High School", "N335,500"]
-];
-
 const subjects = ["Math", "English", "Word Building", "Literature and Creative Writing", "Science", "Social Studies", "Bible Reading"];
 const activities = ["Arts and crafts", "Worship and choir", "Sports huddles", "Press club", "ICT and web design", "Community service projects"];
 const schoolEvents = ["Yearly inter-house sports week", "Cultural Christmas program", "Field trips", "National, Regional, and International Student Conventions", "COCIN Academy yearly thanksgiving Sunday service", "Graduation and special resurrection programs"];
@@ -261,29 +252,14 @@ export default function Home() {
       <section className="bg-white py-16">
         <div className="container-pad">
           <SectionTitle eyebrow="Admissions" title="How to apply" text="Our admissions process helps the school understand each learner and place them where they can grow well." />
-          <div className="grid gap-8 lg:grid-cols-[1.2fr_0.8fr]">
-            <div className="card p-6">
-              <div className="grid gap-4">
-                {admissionsSteps.map((step, index) => (
-                  <div className="flex gap-3" key={step}>
-                    <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-brand text-sm font-bold text-white">{index + 1}</span>
-                    <p className="pt-1 text-sm leading-6 text-slate-700">{step}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-            <div className="card overflow-hidden">
-              <div className="bg-slate-950 px-6 py-4 text-white">
-                <h3 className="text-xl font-bold">First Term Tuition</h3>
-              </div>
-              <div className="divide-y divide-slate-100">
-                {fees.map(([level, amount]) => (
-                  <div className="flex items-center justify-between gap-4 px-6 py-3 text-sm" key={level}>
-                    <span className="font-medium text-slate-700">{level}</span>
-                    <span className="font-bold text-brand">{amount}</span>
-                  </div>
-                ))}
-              </div>
+          <div className="card p-6">
+            <div className="grid gap-4 md:grid-cols-2">
+              {admissionsSteps.map((step, index) => (
+                <div className="flex gap-3" key={step}>
+                  <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-brand text-sm font-bold text-white">{index + 1}</span>
+                  <p className="pt-1 text-sm leading-6 text-slate-700">{step}</p>
+                </div>
+              ))}
             </div>
           </div>
         </div>
