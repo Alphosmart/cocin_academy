@@ -46,4 +46,13 @@ const adminRateLimit = rateLimit({
   message: { message: "Too many admin requests. Please wait a few minutes and try again." }
 });
 
-module.exports = { adminRateLimit, noStore, requireTrustedOrigin };
+const loginRateLimit = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: process.env.NODE_ENV === "production" ? 5 : 50,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { message: "Too many login attempts. Please wait 15 minutes and try again." },
+  skipSuccessfulRequests: true
+});
+
+module.exports = { adminRateLimit, loginRateLimit, noStore, requireTrustedOrigin };
