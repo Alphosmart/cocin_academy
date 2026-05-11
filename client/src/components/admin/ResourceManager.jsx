@@ -58,6 +58,9 @@ export default function ResourceManager({ title, endpoint, fields, columns = ["t
   const [expandedRepeatable, setExpandedRepeatable] = useState({});
   const [pendingDelete, setPendingDelete] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 10;
 
   async function load() {
     try {
@@ -127,8 +130,9 @@ export default function ResourceManager({ title, endpoint, fields, columns = ["t
 
   function repeatableTitle(field, row, index) {
     const title = row.title || row.name || row.question || row.ctaLabel || `${field.label} ${index + 1}`;
-    const detail = row.subtitle || row.description || row.message || row.media || "";
-    return { title, detail };
+    const detail = row.subtitle || row.description || row.message || row.media || row.image || "";
+    const mediaType = row.mediaType || (/\.(mp4|webm|mov)(\?|#|$)/i.test(detail || "") ? "video" : "image");
+    return { title, detail, mediaType };
   }
 
   function edit(item) {
@@ -201,13 +205,25 @@ export default function ResourceManager({ title, endpoint, fields, columns = ["t
               <div className="rounded-md border border-slate-200 bg-slate-50 p-3" key={`${field.name}-${index}`}>
                 {repeatableItemHasContent(field, row) && expandedRepeatable[field.name] !== index ? (
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                    <div className="min-w-0">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <p className="truncate text-sm font-semibold text-slate-900">{repeatableTitle(field, row, index).title}</p>
-                        {row.isActive === false ? <span className="rounded bg-slate-200 px-2 py-0.5 text-xs text-slate-600">Inactive</span> : <span className="rounded bg-emerald-100 px-2 py-0.5 text-xs text-emerald-700">Active</span>}
-                        {row.mediaType && <span className="rounded bg-slate-100 px-2 py-0.5 text-xs text-slate-600">{row.mediaType}</span>}
+                    <div className="flex min-w-0 items-start gap-3">
+                      {(row.media || row.image) && (
+                        <div className="shrink-0">
+                          {repeatableTitle(field, row, index).mediaType === "video" ? (
+                            <video src={row.media || row.image} className="h-16 w-16 rounded object-cover" muted />
+                          ) : (
+                            <img src={row.media || row.image} alt="" className="h-16 w-16 rounded object-cover" />
+                          )}
+                        </div>
+                      )}
+                      <div className="min-w-0 flex-1">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <p className="truncate text-sm font-semibold text-slate-900">{repeatableTitle(field, row, index).title}</p>
+                          {row.isActive === false ? <span className="rounded bg-slate-200 px-2 py-0.5 text-xs text-slate-600">Inactive</span> : row.isActive !== undefined && <span className="rounded bg-emerald-100 px-2 py-0.5 text-xs text-emerald-700">Active</span>}
+                          {row.mediaType && <span className="rounded bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600">{row.mediaType.toUpperCase()}</span>}
+                          {row.status && <span className={`rounded px-2 py-0.5 text-xs font-medium ${row.status === "published" ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"}`}>{row.status}</span>}
+                        </div>
+                        {repeatableTitle(field, row, index).detail && <p className="mt-1 truncate text-xs text-slate-500">{repeatableTitle(field, row, index).detail}</p>}
                       </div>
-                      {repeatableTitle(field, row, index).detail && <p className="mt-1 truncate text-xs text-slate-500">{repeatableTitle(field, row, index).detail}</p>}
                     </div>
                     <div className="flex shrink-0 gap-3 text-sm">
                       <button type="button" className="font-medium text-brand" onClick={() => setExpandedRepeatable((current) => ({ ...current, [field.name]: index }))}>View / Edit</button>
@@ -290,9 +306,63 @@ export default function ResourceManager({ title, endpoint, fields, columns = ["t
           {!singleton && editing && <button type="button" className="btn-secondary" onClick={() => { setEditing(null); setForm(emptyFromFields(fields)); }}>Cancel</button>}
         </div>
       </form>
-      {!singleton && <div className="card mt-8 overflow-x-auto">
-        <DataTable loading={loading} columns={columns} items={items} onEdit={edit} onDelete={setPendingDelete} />
-      </div>}
+      {!singleton && (
+        <div className="card mt-8">
+          <div className="border-b border-slate-200 p-4">
+            <input
+              type="text"
+              placeholder="Search items..."
+              className="input max-w-xs"
+              value={search}
+              onChange={(e) => {
+                setSearch(e.target.value);
+                setCurrentPage(1);
+              }}
+            />
+          </div>
+          <div className="overflow-x-auto">
+            <DataTable
+              loading={loading}
+              columns={columns}
+              items={items
+                .filter((item) =>
+                  search === "" ||
+                  Object.values(item).some((val) =>
+                    String(val).toLowerCase().includes(search.toLowerCase())
+                  )
+                )
+                .slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE)}
+              onEdit={edit}
+              onDelete={setPendingDelete}
+            />
+          </div>
+          {items.length > ITEMS_PER_PAGE && (
+            <div className="border-t border-slate-200 p-4 flex items-center justify-between text-sm">
+              <p className="text-slate-600">
+                Showing {Math.min((currentPage - 1) * ITEMS_PER_PAGE + 1, items.length)}-{Math.min(currentPage * ITEMS_PER_PAGE, items.length)} of {items.length}
+              </p>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  className="btn-secondary px-3 py-1 disabled:opacity-50"
+                  disabled={currentPage === 1}
+                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                >
+                  Previous
+                </button>
+                <button
+                  type="button"
+                  className="btn-secondary px-3 py-1 disabled:opacity-50"
+                  disabled={currentPage * ITEMS_PER_PAGE >= items.length}
+                  onClick={() => setCurrentPage((p) => p + 1)}
+                >
+                  Next
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
       <ConfirmDeleteModal open={Boolean(pendingDelete)} title="Delete content?" message={`Delete ${pendingDelete?.title || pendingDelete?.name || "this item"} permanently?`} onCancel={() => setPendingDelete(null)} onConfirm={remove} />
     </div>
   );
