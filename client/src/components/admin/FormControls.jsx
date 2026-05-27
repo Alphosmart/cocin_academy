@@ -49,7 +49,7 @@ export function RichTextEditor({ label, help, value, onChange }) {
     }
   }, [editorValue]);
 
-  function emitChange() {
+function emitChange() {
     const next = ref.current?.innerHTML || "";
     lastHtml.current = next;
     onChange(next);
