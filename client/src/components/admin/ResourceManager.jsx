@@ -31,6 +31,17 @@ function cleanRepeatableItems(field, rows) {
   return Array.isArray(rows) ? rows.filter((row) => repeatableItemHasContent(field, row)) : rows;
 }
 
+function collectErrorMessages(value) {
+  if (!value) return [];
+  if (typeof value === "string") return [value];
+  if (Array.isArray(value)) return value.flatMap(collectErrorMessages);
+  if (typeof value === "object") {
+    if (typeof value.message === "string") return [value.message];
+    return Object.values(value).flatMap(collectErrorMessages);
+  }
+  return [];
+}
+
 function groupFields(fields) {
   const groups = [];
   fields.forEach((field) => {
@@ -45,10 +56,41 @@ function groupFields(fields) {
 function getErrorMessage(error) {
   const errors = error.response?.data?.errors;
   if (errors && typeof errors === "object") {
-    const messages = Object.values(errors).map((item) => item?.message).filter(Boolean);
+    const messages = collectErrorMessages(errors);
     if (messages.length > 0) return messages.join(", ");
   }
   return error.response?.data?.message || error.message || "Unable to save. Please check the form and try again.";
+}
+
+function dateInputValue(value) {
+  if (!value) return "";
+  if (value instanceof Date) return value.toISOString().slice(0, 10);
+  return String(value).slice(0, 10);
+}
+
+function normalizeFieldValue(field, value) {
+  if (field.type === "number") {
+    if (value === "" || value === null || value === undefined) return undefined;
+    const next = Number(value);
+    return Number.isNaN(next) ? value : next;
+  }
+  if (field.type === "date" && /^\d{4}-\d{2}-\d{2}$/.test(String(value))) {
+    return `${value}T00:00:00.000Z`;
+  }
+  if (field.name === "slug" && typeof value === "string" && value.trim() === "" && !field.required) {
+    return undefined;
+  }
+  return value;
+}
+
+function pruneUndefined(input) {
+  if (Array.isArray(input)) return input.map(pruneUndefined);
+  if (!input || typeof input !== "object") return input;
+  return Object.fromEntries(
+    Object.entries(input)
+      .filter(([, value]) => value !== undefined)
+      .map(([key, value]) => [key, pruneUndefined(value)])
+  );
 }
 
 export default function ResourceManager({ title, endpoint, fields, columns = ["title"], singleton = false }) {
@@ -82,6 +124,7 @@ export default function ResourceManager({ title, endpoint, fields, columns = ["t
   }
 
   function setRepeatableValue(name, index, key, value) {
+    setExpandedRepeatable((current) => (current[name] === index ? current : { ...current, [name]: index }));
     setForm((current) => {
       const next = [...(current[name] || [])];
       next[index] = { ...next[index], [key]: value };
@@ -90,11 +133,15 @@ export default function ResourceManager({ title, endpoint, fields, columns = ["t
   }
 
   function addRepeatableItem(field) {
+    const currentRows = Array.isArray(form[field.name]) ? form[field.name] : [];
+    const shouldAppend = repeatableItemHasContent(field, currentRows[currentRows.length - 1]);
+    const nextRows = shouldAppend ? [...currentRows, emptyRepeatableItem(field)] : currentRows.length > 0 ? currentRows : [emptyRepeatableItem(field)];
+    const nextIndex = Math.max(nextRows.length - 1, 0);
+
+    setExpandedRepeatable((current) => ({ ...current, [field.name]: nextIndex }));
     setForm((current) => ({
       ...current,
-      [field.name]: repeatableItemHasContent(field, (current[field.name] || [])[(current[field.name] || []).length - 1])
-        ? [...(current[field.name] || []), emptyRepeatableItem(field)]
-        : current[field.name] || [emptyRepeatableItem(field)]
+      [field.name]: nextRows
     }));
   }
 
@@ -102,10 +149,21 @@ export default function ResourceManager({ title, endpoint, fields, columns = ["t
     const payload = { ...source };
     ["tags"].forEach((key) => { if (typeof payload[key] === "string") payload[key] = payload[key].split(",").map((x) => x.trim()).filter(Boolean); });
     ["coreValues", "requirements"].forEach((key) => { if (typeof payload[key] === "string") payload[key] = payload[key].split("\n").map((x) => x.trim()).filter(Boolean); });
-    fields.filter((field) => field.type === "repeatable").forEach((field) => {
-      payload[field.name] = cleanRepeatableItems(field, payload[field.name]);
+    fields.forEach((field) => {
+      if (field.type === "repeatable") return;
+      payload[field.name] = normalizeFieldValue(field, payload[field.name]);
     });
-    return payload;
+    fields.filter((field) => field.type === "repeatable").forEach((field) => {
+      const rows = cleanRepeatableItems(field, payload[field.name]);
+      payload[field.name] = Array.isArray(rows) ? rows.map((row) => {
+        const next = { ...row };
+        field.fields.forEach((item) => {
+          next[item.name] = normalizeFieldValue(item, next[item.name]);
+        });
+        return pruneUndefined(next);
+      }) : rows;
+    });
+    return pruneUndefined(payload);
   }
 
   async function removeRepeatableItem(name, index) {
@@ -169,7 +227,7 @@ export default function ResourceManager({ title, endpoint, fields, columns = ["t
   }
 
   function input(field) {
-    const value = form[field.name] ?? "";
+    const value = field.type === "date" ? dateInputValue(form[field.name]) : form[field.name] ?? "";
     if (field.type === "textarea") return <TextArea key={field.name} label={field.label} value={value} onChange={(e) => setValue(field.name, e.target.value)} required={field.required} />;
     if (field.type === "richtext") return <RichTextEditor key={field.name} label={field.label} value={value} onChange={(v) => setValue(field.name, v)} />;
     if (field.type === "image") return <ImageUpload key={field.name} label={field.label} value={value} onChange={(v) => setValue(field.name, v)} required={field.required} />;

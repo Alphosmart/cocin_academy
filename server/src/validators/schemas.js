@@ -1,17 +1,25 @@
 const { z } = require("zod");
 
 // Common field validators
+const emptyToUndefined = (value) => (typeof value === "string" && value.trim() === "" ? undefined : value);
 const urlField = z.string().url().optional().or(z.literal(""));
 const imageField = z.string().url().optional().or(z.literal(""));
 const titleField = z.string().min(1).max(200);
 const slugField = z.string().min(1).max(200).regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "Slug must be lowercase with hyphens");
-const dateField = z.string().datetime().or(z.date());
+const optionalSlugField = z.preprocess(emptyToUndefined, slugField.optional());
+const optionalNumberField = z.preprocess(emptyToUndefined, z.coerce.number().optional());
+const emailField = z.string().email().optional().or(z.literal(""));
+const dateOnlyField = z
+  .string()
+  .regex(/^\d{4}-\d{2}-\d{2}$/, "Date must use YYYY-MM-DD")
+  .refine((value) => !Number.isNaN(Date.parse(`${value}T00:00:00.000Z`)), "Invalid date");
+const dateField = z.string().datetime().or(dateOnlyField).or(z.date());
 
 // Blog validation
 const blogSchema = z.object({
   body: z.object({
     title: titleField,
-    slug: slugField,
+    slug: optionalSlugField,
     excerpt: z.string().min(1).max(500),
     content: z.string().min(10),
     featuredImage: imageField,
@@ -39,7 +47,7 @@ const gallerySchema = z.object({
 const eventSchema = z.object({
   body: z.object({
     title: titleField,
-    slug: slugField.optional(),
+    slug: optionalSlugField,
     image: imageField.optional(),
     date: dateField,
     time: z.string().optional(),
@@ -56,10 +64,10 @@ const staffSchema = z.object({
     biography: z.string().max(1000).optional(),
     qualification: z.string().max(200).optional(),
     image: imageField.optional(),
-    email: z.string().email().optional(),
+    email: emailField,
     linkedinUrl: urlField,
     xUrl: urlField,
-    order: z.number().optional(),
+    order: optionalNumberField,
     isActive: z.boolean().optional()
   })
 });
@@ -70,7 +78,7 @@ const faqSchema = z.object({
     question: z.string().min(5).max(300),
     answer: z.string().min(10).max(2000),
     category: z.string().max(100).optional(),
-    order: z.number().optional(),
+    order: optionalNumberField,
     isActive: z.boolean().optional()
   })
 });
@@ -93,7 +101,7 @@ const academicSchema = z.object({
     level: z.string().max(100).optional(),
     description: z.string().max(1000).optional(),
     image: imageField.optional(),
-    order: z.number().optional(),
+    order: optionalNumberField,
     isActive: z.boolean().optional()
   })
 });
