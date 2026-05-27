@@ -4,6 +4,7 @@ import { useApi } from "../../hooks/useApi";
 import StatCard from "../../components/admin/StatCard";
 
 const cards = [
+  ["Admin Users", "/users", Users],
   ["Posts", "/blogs", FileText],
   ["Gallery", "/gallery", Images],
   ["Events", "/events", Calendar],

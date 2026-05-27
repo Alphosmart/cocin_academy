@@ -12,6 +12,7 @@ const nav = [
   ["Academics", "/admin/academics", BookOpen],
   ["Admissions", "/admin/admissions", BookOpen],
   ["Staff", "/admin/staff", Users],
+  ["Admin Users", "/admin/users", Users],
   ["Testimonials", "/admin/testimonials", Quote],
   ["FAQ", "/admin/faqs", HelpCircle],
   ["Messages", "/admin/messages", MessageSquare]
