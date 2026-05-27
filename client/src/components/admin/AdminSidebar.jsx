@@ -14,8 +14,7 @@ const nav = [
   ["Staff", "/admin/staff", Users],
   ["Testimonials", "/admin/testimonials", Quote],
   ["FAQ", "/admin/faqs", HelpCircle],
-  ["Messages", "/admin/messages", MessageSquare],
-  ["Admin Users", "/admin/users", Users]
+  ["Messages", "/admin/messages", MessageSquare]
 ];
 
 export default function AdminSidebar({ onLogout }) {

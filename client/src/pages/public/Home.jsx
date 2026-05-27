@@ -9,6 +9,7 @@ import SectionTitle from "../../components/public/SectionTitle";
 import { BlogCard, EventCard, GalleryCard, TestimonialCard } from "../../components/public/Cards";
 import ContactForm from "../../components/public/ContactForm";
 import { setSeo } from "../../utils/seo";
+import { getEmbedUrl, getMediaType } from "../../utils/media";
 import {
   defaultAcademics,
   defaultBlogs,
@@ -85,7 +86,7 @@ const VIDEO_FALLBACK_MS = 45000;
 
 function normalizeHeroSlide(slide = {}) {
   const media = slide.media || slide.video || slide.image || "";
-  const mediaType = slide.mediaType || (slide.video ? "video" : "image");
+  const mediaType = getMediaType(media, slide.mediaType || (slide.video ? "video" : "image"));
   return { ...slide, media, mediaType };
 }
 
@@ -116,6 +117,7 @@ export default function Home() {
     return [primarySlide];
   }, [data]);
   const slide = heroSlides[activeSlide] || heroSlides[0] || {};
+  const slideEmbedUrl = slide.mediaType === "embed" ? getEmbedUrl(slide.media, { autoplay: true }) : "";
 
   useEffect(() => {
     setActiveSlide(0);
@@ -123,7 +125,7 @@ export default function Home() {
 
   useEffect(() => {
     if (heroSlides.length < 2) return undefined;
-    if (slide.mediaType === "video" && slide.media) {
+    if ((slide.mediaType === "video" || slide.mediaType === "embed") && slide.media) {
       const timer = window.setTimeout(() => {
         setActiveSlide((current) => (current + 1) % heroSlides.length);
       }, VIDEO_FALLBACK_MS);
@@ -148,7 +150,16 @@ export default function Home() {
     <>
       <section className="relative overflow-hidden bg-slate-950 text-white">
         <div className="absolute inset-0">
-          {slide.mediaType === "video" && slide.media ? (
+          {slide.mediaType === "embed" && slideEmbedUrl ? (
+            <iframe
+              key={slide.media}
+              src={slideEmbedUrl}
+              title={slide.title || "Homepage media"}
+              className="pointer-events-none absolute left-1/2 top-1/2 h-[56.25vw] min-h-full w-[177.78vh] min-w-full -translate-x-1/2 -translate-y-1/2 opacity-55 transition-opacity duration-500"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              allowFullScreen
+            />
+          ) : slide.mediaType === "video" && slide.media ? (
             <video
               key={slide.media}
               className="h-full w-full object-cover opacity-55 transition-opacity duration-500"

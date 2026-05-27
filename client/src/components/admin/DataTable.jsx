@@ -1,3 +1,21 @@
+const columnLabels = {
+  category: "Category",
+  date: "Date",
+  featured: "Featured",
+  isActive: "Visible",
+  level: "Level",
+  location: "Location",
+  name: "Name",
+  question: "Question",
+  role: "Role",
+  status: "Visibility",
+  title: "Title"
+};
+
+function columnLabel(column) {
+  return columnLabels[column] || column;
+}
+
 function renderCellValue(value, column, item) {
   // Show image thumbnails
   if ((column === "image" || column === "featuredImage" || column === "media") && value && typeof value === "string") {
@@ -21,7 +39,7 @@ function renderCellValue(value, column, item) {
         value === "draft" ? "bg-amber-100 text-amber-700" :
         "bg-slate-100 text-slate-600"
       }`}>
-        {String(value ?? "")}
+        {String(value ?? "").replace(/^\w/, (letter) => letter.toUpperCase())}
       </span>
     );
   }
@@ -52,7 +70,7 @@ export default function DataTable({ loading, columns, items, onEdit, onDelete })
   return (
     <table className="w-full text-left text-sm">
       <thead className="bg-slate-50 text-slate-600">
-        <tr>{columns.map((column) => <th className="p-3 font-semibold" key={column}>{column}</th>)}<th className="p-3 font-semibold">Actions</th></tr>
+        <tr>{columns.map((column) => <th className="p-3 font-semibold" key={column}>{columnLabel(column)}</th>)}<th className="p-3 font-semibold">Actions</th></tr>
       </thead>
       <tbody>
         {items.map((item) => (

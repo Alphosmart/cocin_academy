@@ -7,7 +7,7 @@ const homepageContentSchema = new mongoose.Schema(
     heroImage: String,
     heroVideo: String,
     heroMedia: String,
-    heroMediaType: { type: String, enum: ["image", "video"], default: "image" },
+    heroMediaType: { type: String, enum: ["image", "video", "embed"], default: "image" },
     heroMediaActive: { type: Boolean, default: true },
     heroSlides: [
       {
@@ -16,7 +16,7 @@ const homepageContentSchema = new mongoose.Schema(
         image: String,
         video: String,
         media: String,
-        mediaType: { type: String, enum: ["image", "video"], default: "image" },
+        mediaType: { type: String, enum: ["image", "video", "embed"], default: "image" },
         isActive: { type: Boolean, default: true },
         ctaLabel: String,
         ctaLink: String

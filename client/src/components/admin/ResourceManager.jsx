@@ -4,6 +4,7 @@ import http from "../../api/http";
 import { ImageUpload, MixedMediaUpload, RichTextEditor, TextArea, TextInput, VideoUpload } from "./FormControls";
 import ConfirmDeleteModal from "./ConfirmDeleteModal";
 import DataTable from "./DataTable";
+import { getMediaType } from "../../utils/media";
 
 function emptyFromFields(fields) {
   return fields.reduce((acc, field) => {
@@ -31,6 +32,17 @@ function cleanRepeatableItems(field, rows) {
   return Array.isArray(rows) ? rows.filter((row) => repeatableItemHasContent(field, row)) : rows;
 }
 
+function collectErrorMessages(value) {
+  if (!value) return [];
+  if (typeof value === "string") return [value];
+  if (Array.isArray(value)) return value.flatMap(collectErrorMessages);
+  if (typeof value === "object") {
+    if (typeof value.message === "string") return [value.message];
+    return Object.values(value).flatMap(collectErrorMessages);
+  }
+  return [];
+}
+
 function groupFields(fields) {
   const groups = [];
   fields.forEach((field) => {
@@ -45,10 +57,41 @@ function groupFields(fields) {
 function getErrorMessage(error) {
   const errors = error.response?.data?.errors;
   if (errors && typeof errors === "object") {
-    const messages = Object.values(errors).map((item) => item?.message).filter(Boolean);
+    const messages = collectErrorMessages(errors);
     if (messages.length > 0) return messages.join(", ");
   }
   return error.response?.data?.message || error.message || "Unable to save. Please check the form and try again.";
+}
+
+function dateInputValue(value) {
+  if (!value) return "";
+  if (value instanceof Date) return value.toISOString().slice(0, 10);
+  return String(value).slice(0, 10);
+}
+
+function normalizeFieldValue(field, value) {
+  if (field.type === "number") {
+    if (value === "" || value === null || value === undefined) return undefined;
+    const next = Number(value);
+    return Number.isNaN(next) ? value : next;
+  }
+  if (field.type === "date" && /^\d{4}-\d{2}-\d{2}$/.test(String(value))) {
+    return `${value}T00:00:00.000Z`;
+  }
+  if (field.name === "slug" && typeof value === "string" && value.trim() === "" && !field.required) {
+    return undefined;
+  }
+  return value;
+}
+
+function pruneUndefined(input) {
+  if (Array.isArray(input)) return input.map(pruneUndefined);
+  if (!input || typeof input !== "object") return input;
+  return Object.fromEntries(
+    Object.entries(input)
+      .filter(([, value]) => value !== undefined)
+      .map(([key, value]) => [key, pruneUndefined(value)])
+  );
 }
 
 export default function ResourceManager({ title, endpoint, fields, columns = ["title"], singleton = false }) {
@@ -82,6 +125,7 @@ export default function ResourceManager({ title, endpoint, fields, columns = ["t
   }
 
   function setRepeatableValue(name, index, key, value) {
+    setExpandedRepeatable((current) => (current[name] === index ? current : { ...current, [name]: index }));
     setForm((current) => {
       const next = [...(current[name] || [])];
       next[index] = { ...next[index], [key]: value };
@@ -90,11 +134,15 @@ export default function ResourceManager({ title, endpoint, fields, columns = ["t
   }
 
   function addRepeatableItem(field) {
+    const currentRows = Array.isArray(form[field.name]) ? form[field.name] : [];
+    const shouldAppend = repeatableItemHasContent(field, currentRows[currentRows.length - 1]);
+    const nextRows = shouldAppend ? [...currentRows, emptyRepeatableItem(field)] : currentRows.length > 0 ? currentRows : [emptyRepeatableItem(field)];
+    const nextIndex = Math.max(nextRows.length - 1, 0);
+
+    setExpandedRepeatable((current) => ({ ...current, [field.name]: nextIndex }));
     setForm((current) => ({
       ...current,
-      [field.name]: repeatableItemHasContent(field, (current[field.name] || [])[(current[field.name] || []).length - 1])
-        ? [...(current[field.name] || []), emptyRepeatableItem(field)]
-        : current[field.name] || [emptyRepeatableItem(field)]
+      [field.name]: nextRows
     }));
   }
 
@@ -102,10 +150,21 @@ export default function ResourceManager({ title, endpoint, fields, columns = ["t
     const payload = { ...source };
     ["tags"].forEach((key) => { if (typeof payload[key] === "string") payload[key] = payload[key].split(",").map((x) => x.trim()).filter(Boolean); });
     ["coreValues", "requirements"].forEach((key) => { if (typeof payload[key] === "string") payload[key] = payload[key].split("\n").map((x) => x.trim()).filter(Boolean); });
-    fields.filter((field) => field.type === "repeatable").forEach((field) => {
-      payload[field.name] = cleanRepeatableItems(field, payload[field.name]);
+    fields.forEach((field) => {
+      if (field.type === "repeatable") return;
+      payload[field.name] = normalizeFieldValue(field, payload[field.name]);
     });
-    return payload;
+    fields.filter((field) => field.type === "repeatable").forEach((field) => {
+      const rows = cleanRepeatableItems(field, payload[field.name]);
+      payload[field.name] = Array.isArray(rows) ? rows.map((row) => {
+        const next = { ...row };
+        field.fields.forEach((item) => {
+          next[item.name] = normalizeFieldValue(item, next[item.name]);
+        });
+        return pruneUndefined(next);
+      }) : rows;
+    });
+    return pruneUndefined(payload);
   }
 
   async function removeRepeatableItem(name, index) {
@@ -131,7 +190,7 @@ export default function ResourceManager({ title, endpoint, fields, columns = ["t
   function repeatableTitle(field, row, index) {
     const title = row.title || row.name || row.question || row.ctaLabel || `${field.label} ${index + 1}`;
     const detail = row.subtitle || row.description || row.message || row.media || row.image || "";
-    const mediaType = row.mediaType || (/\.(mp4|webm|mov)(\?|#|$)/i.test(detail || "") ? "video" : "image");
+    const mediaType = getMediaType(row.media || row.image || "", row.mediaType || "image");
     return { title, detail, mediaType };
   }
 
@@ -169,16 +228,17 @@ export default function ResourceManager({ title, endpoint, fields, columns = ["t
   }
 
   function input(field) {
-    const value = form[field.name] ?? "";
-    if (field.type === "textarea") return <TextArea key={field.name} label={field.label} value={value} onChange={(e) => setValue(field.name, e.target.value)} required={field.required} />;
-    if (field.type === "richtext") return <RichTextEditor key={field.name} label={field.label} value={value} onChange={(v) => setValue(field.name, v)} />;
-    if (field.type === "image") return <ImageUpload key={field.name} label={field.label} value={value} onChange={(v) => setValue(field.name, v)} required={field.required} />;
-    if (field.type === "video") return <VideoUpload key={field.name} label={field.label} value={value} onChange={(v) => setValue(field.name, v)} required={field.required} />;
+    const value = field.type === "date" ? dateInputValue(form[field.name]) : form[field.name] ?? "";
+    if (field.type === "textarea") return <TextArea key={field.name} label={field.label} help={field.help} value={value} onChange={(e) => setValue(field.name, e.target.value)} required={field.required} />;
+    if (field.type === "richtext") return <RichTextEditor key={field.name} label={field.label} help={field.help} value={value} onChange={(v) => setValue(field.name, v)} />;
+    if (field.type === "image") return <ImageUpload key={field.name} label={field.label} help={field.help} value={value} onChange={(v) => setValue(field.name, v)} required={field.required} />;
+    if (field.type === "video") return <VideoUpload key={field.name} label={field.label} help={field.help} value={value} onChange={(v) => setValue(field.name, v)} required={field.required} />;
     if (field.type === "media") {
       return (
         <MixedMediaUpload
           key={field.name}
           label={field.label}
+          help={field.help}
           value={value}
           mediaType={form[field.mediaTypeField]}
           onChange={(nextValue, nextType) => {
@@ -189,8 +249,8 @@ export default function ResourceManager({ title, endpoint, fields, columns = ["t
         />
       );
     }
-    if (field.type === "checkbox") return <label key={field.name} className="flex items-center gap-2 text-sm"><input type="checkbox" checked={Boolean(form[field.name])} onChange={(e) => setValue(field.name, e.target.checked)} /> {field.label}</label>;
-    if (field.type === "select") return <label key={field.name} className="block"><span className="label">{field.label}</span><select className="input" value={value} onChange={(e) => setValue(field.name, e.target.value)} required={field.required}>{field.options.map((o) => <option key={o} value={o}>{o}</option>)}</select></label>;
+    if (field.type === "checkbox") return <label key={field.name} className="flex items-start gap-2 text-sm"><input type="checkbox" className="mt-1" checked={Boolean(form[field.name])} onChange={(e) => setValue(field.name, e.target.checked)} /> <span>{field.label}{field.help && <span className="mt-1 block text-xs leading-5 text-slate-500">{field.help}</span>}</span></label>;
+    if (field.type === "select") return <label key={field.name} className="block"><span className="label">{field.label}</span><select className="input" value={value} onChange={(e) => setValue(field.name, e.target.value)} required={field.required}>{field.options.map((o) => <option key={o} value={o}>{o}</option>)}</select>{field.help && <span className="mt-1 block text-xs leading-5 text-slate-500">{field.help}</span>}</label>;
     if (field.type === "repeatable") {
       const savedRows = Array.isArray(value) ? value : [];
       const rows = repeatableItemHasContent(field, savedRows[savedRows.length - 1]) || savedRows.length === 0 ? [...savedRows, emptyRepeatableItem(field)] : savedRows;
@@ -208,7 +268,9 @@ export default function ResourceManager({ title, endpoint, fields, columns = ["t
                     <div className="flex min-w-0 items-start gap-3">
                       {(row.media || row.image) && (
                         <div className="shrink-0">
-                          {repeatableTitle(field, row, index).mediaType === "video" ? (
+                          {repeatableTitle(field, row, index).mediaType === "embed" ? (
+                            <div className="grid h-16 w-16 place-items-center rounded bg-slate-200 text-xs font-semibold text-slate-600">Embed</div>
+                          ) : repeatableTitle(field, row, index).mediaType === "video" ? (
                             <video src={row.media || row.image} className="h-16 w-16 rounded object-cover" muted />
                           ) : (
                             <img src={row.media || row.image} alt="" className="h-16 w-16 rounded object-cover" />
@@ -236,12 +298,13 @@ export default function ResourceManager({ title, endpoint, fields, columns = ["t
                       {field.fields.map((item) => {
                         const itemValue = row[item.name] || "";
                         const className = item.type === "textarea" || item.type === "image" || item.type === "video" || item.type === "media" ? "md:col-span-2" : "";
-                        if (item.type === "image") return <div className={className} key={item.name}><ImageUpload label={item.label} value={itemValue} onChange={(next) => setRepeatableValue(field.name, index, item.name, next)} /></div>;
-                        if (item.type === "video") return <div className={className} key={item.name}><VideoUpload label={item.label} value={itemValue} onChange={(next) => setRepeatableValue(field.name, index, item.name, next)} /></div>;
+                        if (item.type === "image") return <div className={className} key={item.name}><ImageUpload label={item.label} help={item.help} value={itemValue} onChange={(next) => setRepeatableValue(field.name, index, item.name, next)} /></div>;
+                        if (item.type === "video") return <div className={className} key={item.name}><VideoUpload label={item.label} help={item.help} value={itemValue} onChange={(next) => setRepeatableValue(field.name, index, item.name, next)} /></div>;
                         if (item.type === "checkbox") {
                           return (
-                            <label className="flex items-center gap-2 text-sm" key={item.name}>
-                              <input type="checkbox" checked={row[item.name] !== false} onChange={(e) => setRepeatableValue(field.name, index, item.name, e.target.checked)} /> {item.label}
+                            <label className="flex items-start gap-2 text-sm" key={item.name}>
+                              <input className="mt-1" type="checkbox" checked={row[item.name] !== false} onChange={(e) => setRepeatableValue(field.name, index, item.name, e.target.checked)} />
+                              <span>{item.label}{item.help && <span className="mt-1 block text-xs leading-5 text-slate-500">{item.help}</span>}</span>
                             </label>
                           );
                         }
@@ -250,6 +313,7 @@ export default function ResourceManager({ title, endpoint, fields, columns = ["t
                             <div className={className} key={item.name}>
                               <MixedMediaUpload
                                 label={item.label}
+                                help={item.help}
                                 value={itemValue}
                                 mediaType={row[item.mediaTypeField]}
                                 onChange={(nextValue, nextType) => {
@@ -268,6 +332,7 @@ export default function ResourceManager({ title, endpoint, fields, columns = ["t
                             ) : (
                               <input className="input" value={itemValue} onChange={(e) => setRepeatableValue(field.name, index, item.name, e.target.value)} />
                             )}
+                            {item.help && <span className="mt-1 block text-xs leading-5 text-slate-500">{item.help}</span>}
                           </label>
                         );
                       })}
@@ -286,7 +351,7 @@ export default function ResourceManager({ title, endpoint, fields, columns = ["t
         </div>
       );
     }
-    return <TextInput key={field.name} label={field.label} type={field.type || "text"} value={value} onChange={(e) => setValue(field.name, e.target.value)} required={field.required} />;
+    return <TextInput key={field.name} label={field.label} help={field.help} type={field.type || "text"} value={value} onChange={(e) => setValue(field.name, e.target.value)} required={field.required} />;
   }
 
   return (

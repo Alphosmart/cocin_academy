@@ -47,6 +47,7 @@ function sanitizeHtml(value) {
 
 function sanitizeObject(input) {
   if (Array.isArray(input)) return input.map(sanitizeObject);
+  if (input instanceof Date) return input;
   if (!input || typeof input !== "object") return sanitizeHtml(input);
   return Object.fromEntries(
     Object.entries(input)

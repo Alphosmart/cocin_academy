@@ -18,7 +18,6 @@ import NotFound from "./pages/public/NotFound";
 import Login from "./pages/admin/Login";
 import Dashboard from "./pages/admin/Dashboard";
 import Messages from "./pages/admin/Messages";
-import Users from "./pages/admin/Users";
 import ChangePassword from "./pages/admin/ChangePassword";
 import {
   AcademicManager,
@@ -69,7 +68,6 @@ export default function App() {
           <Route path="testimonials" element={<TestimonialManager />} />
           <Route path="faqs" element={<FAQManager />} />
           <Route path="messages" element={<Messages />} />
-          <Route path="users" element={<Users />} />
           <Route path="change-password" element={<ChangePassword />} />
           <Route path="logout" element={<Navigate to={ADMIN_LOGIN_PATH} replace />} />
         </Route>

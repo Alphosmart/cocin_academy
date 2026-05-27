@@ -29,7 +29,9 @@ Most dashboard sections work the same way:
 
 For image fields, you can upload an image file or paste an image URL. Supported image uploads are JPG, PNG, WebP, and GIF.
 
-For media fields, you can upload either an image or a video, or paste a media URL. Supported video uploads are MP4, WebM, and MOV. Keep videos short and compressed for faster page loading.
+For media fields, you can upload either an image or a video, paste a direct image/video URL, or paste a YouTube/Vimeo link. Supported video uploads are MP4, WebM, and MOV. Keep uploaded videos short and compressed for faster page loading.
+
+SEO title is the title that can appear in browser tabs and search results. SEO description is the short summary that can appear under that title in search results.
 
 ## Overview
 
@@ -49,13 +51,11 @@ Use this page as a quick health check for the website content.
 Use **Settings** to manage global website information:
 
 - School name and motto
-- Logo and favicon
-- Primary and secondary colors
+- Logo
 - Email, phone, WhatsApp, and address
 - Social media links
-- Google Map embed
 - Footer text
-- SEO title and SEO description
+- Search preview fields
 
 These values appear across the public website, especially in the header, footer, contact page, and search previews.
 
@@ -69,16 +69,16 @@ Use **Homepage** to control the public home page:
 - About preview
 - Why Choose Us items
 - Admissions call-to-action
-- Homepage SEO fields
+- Search preview fields
 
-For carousel slides, click **Add** to create each slide. Each slide can have a title, subtitle, media file or URL, button label, and button link.
+For carousel slides, click **Add** to create each slide. Each slide can have a heading, text, and media file or URL. YouTube and Vimeo links are supported in slideshow media fields.
 
-If the hero media is a video, the homepage uses it as the hero background. You can upload a local video file from the admin dashboard or paste a direct video URL. If you paste a URL manually, select whether it is an image or video.
+If the hero media is a video or YouTube/Vimeo link, the homepage uses it as the hero background. You can upload a local video file from the admin dashboard or paste a direct video URL.
 
 Carousel slides can be managed individually:
 
-- Use **Show main hero media** to show or hide the main hero media without deleting it.
-- Use **Active** to show or hide a slide without deleting it.
+- Use **Show main image or video** to show or hide the main hero media without deleting it.
+- Use **Show this slide** to show or hide a slide without deleting it.
 - Edit the slide fields directly, then click **Save changes**.
 - Use **Remove media** to clear the image or video from a slide.
 - Use **Remove item** to delete a slide from the carousel.
@@ -94,6 +94,8 @@ The About page includes content, mission, vision, and core values. The Privacy P
 
 Rich text fields support basic formatting such as bold, italic, and lists.
 
+The search preview fields help control how these pages appear in search results.
+
 ## Blog
 
 Use **Blog** to manage news and article posts.
@@ -101,23 +103,14 @@ Use **Blog** to manage news and article posts.
 Main fields:
 
 - Title
-- Slug
-- Excerpt
-- Content
+- Short summary
+- Main content
 - Featured image
 - Category
-- Tags
-- Author
-- Status
-- SEO title and description
+- Visibility
+- Search preview fields
 
-Set **Status** to `published` when the post should appear publicly. Use `draft` for work that should remain hidden from public visitors.
-
-The slug is the URL-friendly part of the post link. Use lowercase words separated by hyphens, for example:
-
-```text
-school-open-day-2026
-```
+Set **Visibility** to `published` when the post should appear publicly. Use `draft` for work that should remain hidden from public visitors.
 
 ## Gallery
 
@@ -140,7 +133,6 @@ Use **Events** to publish upcoming or past school events.
 Fields:
 
 - Title
-- Slug
 - Image
 - Date
 - Time
@@ -159,10 +151,9 @@ Fields:
 - Level
 - Description
 - Image
-- Order
-- Active
+- Show on website
 
-Use **Order** to control display order. Lower numbers appear earlier. Disable **Active** if a program should be hidden without deleting it.
+Turn off **Show on website** if a program should be hidden without deleting it.
 
 ## Admissions
 
@@ -173,9 +164,9 @@ Fields:
 - Title
 - Content
 - Requirements
-- Process steps
-- CTA text
-- SEO title and description
+- Admission steps
+- Closing message
+- Search preview fields
 
 Enter requirements one per line. For process steps, click **Add** and enter the step title and description.
 
@@ -191,12 +182,9 @@ Fields:
 - Qualification
 - Image
 - Email
-- LinkedIn URL
-- X URL
-- Order
-- Active
+- Show on website
 
-Use **Order** to control display order. Disable **Active** to hide a staff member without deleting the profile.
+Turn off **Show on website** to hide a staff member without deleting the profile.
 
 ## Testimonials
 
@@ -208,9 +196,9 @@ Fields:
 - Role
 - Message
 - Image
-- Active
+- Show on website
 
-Keep testimonials concise and accurate. Disable **Active** to hide a testimonial without deleting it.
+Keep testimonials concise and accurate. Turn off **Show on website** to hide a testimonial without deleting it.
 
 ## FAQ
 
@@ -221,10 +209,9 @@ Fields:
 - Question
 - Answer
 - Category
-- Order
-- Active
+- Show on website
 
-Use categories to group related questions, such as Admissions, Academics, Fees, or General. Use **Order** to control display sequence.
+Use categories to group related questions, such as Admissions, Academics, Fees, or General.
 
 ## Messages
 
@@ -240,19 +227,6 @@ Each message shows:
 - Read status
 
 Use **Read** after following up with a message. Use **Delete** only when the message is no longer needed.
-
-## Admin Users
-
-Use **Admin Users** to manage who can access the dashboard.
-
-Fields:
-
-- Name
-- Email
-- Password
-- Active
-
-Only create accounts for trusted staff. Disable **Active** to block an account without deleting it. Use strong passwords and avoid sharing accounts.
 
 ## Change Password
 
@@ -270,9 +244,8 @@ Passwords must be at least 8 characters. Use a unique password that is not reuse
 - Keep titles short and clear.
 - Use high-quality images with good lighting.
 - Avoid uploading very large images when possible.
-- Keep SEO titles and descriptions specific to the page.
 - Use `published` only when blog content is ready for public viewing.
-- Prefer hiding items with **Active** before deleting them permanently.
+- Prefer hiding items with **Show on website** before deleting them permanently.
 
 ## Security Notes
 
@@ -280,4 +253,3 @@ Passwords must be at least 8 characters. Use a unique password that is not reuse
 - Log out after using a shared computer.
 - Do not paste unknown scripts or unsafe HTML into rich text fields.
 - Upload only trusted image files.
-- Remove admin access for users who no longer need it.
