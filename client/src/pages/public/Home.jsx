@@ -173,9 +173,9 @@ export default function Home() {
             >
               <source src={slide.media} />
             </video>
-          ) : (
-            <img src={slide.media || slide.image || "https://placehold.co/1600x900"} alt="" className="h-full w-full object-cover opacity-55 transition-opacity duration-500" />
-          )}
+          ) : slide.media || slide.image ? (
+            <img src={slide.media || slide.image} alt="" className="h-full w-full object-cover opacity-55 transition-opacity duration-500" />
+          ) : null}
           <div className="absolute inset-0 bg-slate-950/45" />
         </div>
         <div className="container-pad relative flex min-h-[620px] items-center py-16">
