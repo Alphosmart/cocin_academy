@@ -162,7 +162,7 @@ export default function Home() {
           ) : slide.mediaType === "video" && slide.media ? (
             <video
               key={slide.media}
-              className="h-full w-full object-cover opacity-55 transition-opacity duration-500"
+              className="h-full w-full object-cover opacity-80 transition-opacity duration-500"
               poster={slide.image || undefined}
               autoPlay
               muted
@@ -173,10 +173,10 @@ export default function Home() {
             >
               <source src={slide.media} />
             </video>
-          ) : (
-            <img src={slide.media || slide.image || "https://placehold.co/1600x900"} alt="" className="h-full w-full object-cover opacity-55 transition-opacity duration-500" />
-          )}
-          <div className="absolute inset-0 bg-slate-950/45" />
+          ) : slide.media || slide.image ? (
+            <img src={slide.media || slide.image} alt="" className="h-full w-full object-contain object-center opacity-80 transition-opacity duration-500" />
+          ) : null}
+          <div className="absolute inset-0 bg-slate-950/25" />
         </div>
         <div className="container-pad relative flex min-h-[620px] items-center py-16">
           <div className="max-w-3xl">
