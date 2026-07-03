@@ -156,8 +156,7 @@ export default function Home() {
               src={slideEmbedUrl}
               title={slide.title || "Homepage media"}
               className="pointer-events-none absolute left-1/2 top-1/2 h-[56.25vw] min-h-full w-[177.78vh] min-w-full -translate-x-1/2 -translate-y-1/2 opacity-55 transition-opacity duration-500"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-              allowFullScreen
+              allow="autoplay; encrypted-media; picture-in-picture"
             />
           ) : slide.mediaType === "video" && slide.media ? (
             <video

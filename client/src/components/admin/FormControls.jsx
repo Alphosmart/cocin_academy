@@ -158,8 +158,7 @@ export function MixedMediaUpload({ label, help, value, mediaType, onChange, requ
           src={embedUrl}
           title={`${label} preview`}
           className="mb-3 aspect-video w-64 max-w-full rounded-md border border-slate-200"
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-          allowFullScreen
+          allow="autoplay; encrypted-media; picture-in-picture"
         />
       )}
       {value && previewType === "video" && <video src={value} className="mb-3 h-28 w-44 rounded-md object-cover" muted controls />}
