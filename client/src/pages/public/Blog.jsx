@@ -9,7 +9,7 @@ import { defaultBlogs } from "../../data/defaultContent";
 export default function Blog() {
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("");
-  const { data, loading, error } = useApi(() => http.get("/blogs?status=published"), [], { fallbackData: defaultBlogs });
+  const { data, loading, error } = useApi(() => http.get("/blogs?status=published"), [], { fallbackData: defaultBlogs, cacheKey: "blogs" });
   const posts = useMemo(() => (data || []).filter((p) => (!search || p.title.toLowerCase().includes(search.toLowerCase())) && (!category || p.category === category)), [data, search, category]);
   const categories = [...new Set((data || []).map((p) => p.category))];
   if (loading) return <Loader />;

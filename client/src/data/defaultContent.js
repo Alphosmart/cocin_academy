@@ -27,12 +27,12 @@ export const defaultSettings = {
 export const defaultHomepage = {
   heroTitle: "COCIN Academy",
   heroSubtitle: "A Biblically-based learning community preparing the hearts, minds, and spirits of learners in the image of Jesus Christ.",
-  heroImage: image("COCIN Academy"),
+  heroImage: image("Campus Photo"),
   heroSlides: [
     {
       title: "COCIN Academy",
       subtitle: "A Biblically-based learning community preparing the hearts, minds, and spirits of learners in the image of Jesus Christ.",
-      image: image("COCIN Academy"),
+      image: image("Campus Photo"),
       ctaLabel: "Admissions",
       ctaLink: "/admissions"
     },

@@ -20,7 +20,7 @@ const links = [
 
 export default function PublicLayout() {
   const [open, setOpen] = useState(false);
-  const { data: settings } = useApi(() => http.get("/settings"), [], { fallbackData: defaultSettings });
+  const { data: settings } = useApi(() => http.get("/settings"), [], { fallbackData: defaultSettings, cacheKey: "settings" });
   const whatsapp = settings?.whatsapp?.replace(/[^\d]/g, "");
 
   useEffect(() => {

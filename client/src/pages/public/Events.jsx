@@ -6,7 +6,7 @@ import { EventCard } from "../../components/public/Cards";
 import { defaultEvents } from "../../data/defaultContent";
 
 export default function Events() {
-  const { data, loading, error } = useApi(() => http.get("/events"), [], { fallbackData: defaultEvents });
+  const { data, loading, error } = useApi(() => http.get("/events"), [], { fallbackData: defaultEvents, cacheKey: "events" });
   if (loading) return <Loader />;
   if (error) return <ErrorMessage message={error} />;
   const now = new Date();
