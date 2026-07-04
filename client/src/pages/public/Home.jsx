@@ -155,13 +155,13 @@ export default function Home() {
               key={slide.media}
               src={slideEmbedUrl}
               title={slide.title || "Homepage media"}
-              className="pointer-events-none absolute left-1/2 top-1/2 h-[56.25vw] min-h-full w-[177.78vh] min-w-full -translate-x-1/2 -translate-y-1/2 opacity-55 transition-opacity duration-500"
+              className="pointer-events-none absolute left-1/2 top-1/2 h-[56.25vw] min-h-full w-[177.78vh] min-w-full -translate-x-1/2 -translate-y-1/2 transition-opacity duration-500"
               allow="autoplay; encrypted-media; picture-in-picture"
             />
           ) : slide.mediaType === "video" && slide.media ? (
             <video
               key={slide.media}
-              className="h-full w-full object-cover opacity-80 transition-opacity duration-500"
+              className="h-full w-full object-cover transition-opacity duration-500"
               poster={slide.image || undefined}
               autoPlay
               muted
@@ -178,8 +178,13 @@ export default function Home() {
               <img src={slide.media || slide.image} alt="" className="relative h-full w-full object-contain object-center transition-opacity duration-500" />
             </>
           ) : null}
-          <div className="absolute inset-0 bg-gradient-to-r from-slate-950/85 via-slate-950/60 to-slate-950/20" />
-          <div className="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-transparent to-slate-950/20" />
+          {/* Colour overlays only when the hero has no image/video, so real media shows in true colour. */}
+          {!(slide.media || slide.image) && (
+            <>
+              <div className="absolute inset-0 bg-gradient-to-r from-slate-950/85 via-slate-950/60 to-slate-950/20" />
+              <div className="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-transparent to-slate-950/20" />
+            </>
+          )}
         </div>
         <div className="container-pad relative flex min-h-[620px] items-center py-16">
           <div className="max-w-3xl">

@@ -14,9 +14,14 @@ export function AuthProvider({ children }) {
       .finally(() => setBooting(false));
   }, []);
 
-  async function login(email, password) {
-    const res = await http.post("/auth/login", { email, password });
+  async function login(email, password, token) {
+    const res = await http.post("/auth/login", { email, password, token });
+    // 206 => two-factor code required; caller should prompt for it.
+    if (res.status === 206 || res.data?.twoFactorRequired) {
+      return { twoFactorRequired: true };
+    }
     setUser(res.data.user);
+    return { user: res.data.user };
   }
 
   async function logout() {

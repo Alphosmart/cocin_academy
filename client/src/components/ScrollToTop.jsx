@@ -15,6 +15,10 @@ export default function ScrollToTop() {
       }
     }
     window.scrollTo(0, 0);
+    // The admin panel scrolls inside an independent column, not the window.
+    document.querySelectorAll("[data-scroll-container]").forEach((el) => {
+      el.scrollTop = 0;
+    });
   }, [pathname, hash]);
 
   return null;

@@ -7,7 +7,12 @@ const userSchema = new mongoose.Schema(
     email: { type: String, required: true, unique: true, lowercase: true, trim: true },
     password: { type: String, required: true, minlength: 8, select: false },
     role: { type: String, enum: ["admin"], default: "admin" },
-    isActive: { type: Boolean, default: true }
+    isActive: { type: Boolean, default: true },
+    // Developer accounts see maintenance-only tools (e.g. Media Files).
+    isDeveloper: { type: Boolean, default: false },
+    // Two-factor authentication (TOTP)
+    twoFactorSecret: { type: String, select: false },
+    twoFactorEnabled: { type: Boolean, default: false }
   },
   { timestamps: true }
 );

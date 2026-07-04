@@ -1,5 +1,5 @@
 const mongoose = require("mongoose");
-const makeSlug = require("../utils/slug");
+const makeUniqueSlug = require("../utils/uniqueSlug");
 
 const eventSchema = new mongoose.Schema(
   {
@@ -14,9 +14,8 @@ const eventSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-eventSchema.pre("validate", function setSlug(next) {
-  if (!this.slug && this.title) this.slug = makeSlug(this.title);
-  next();
+eventSchema.pre("validate", async function setSlug() {
+  if (!this.slug && this.title) this.slug = await makeUniqueSlug(this.constructor, this.title, this._id);
 });
 
 module.exports = mongoose.model("Event", eventSchema);

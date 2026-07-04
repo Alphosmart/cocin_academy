@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { Link, NavLink, Outlet } from "react-router-dom";
 import http from "../api/http";
 import { useApi } from "../hooks/useApi";
+import { usePageView } from "../hooks/usePageView";
 import { defaultSettings } from "../data/defaultContent";
 
 const links = [
@@ -19,6 +20,7 @@ const links = [
 ];
 
 export default function PublicLayout() {
+  usePageView();
   const [open, setOpen] = useState(false);
   const { data: settings } = useApi(() => http.get("/settings"), [], { fallbackData: defaultSettings, cacheKey: "settings" });
   const whatsapp = settings?.whatsapp?.replace(/[^\d]/g, "");

@@ -1,5 +1,5 @@
 const mongoose = require("mongoose");
-const makeSlug = require("../utils/slug");
+const makeUniqueSlug = require("../utils/uniqueSlug");
 
 const blogPostSchema = new mongoose.Schema(
   {
@@ -18,9 +18,8 @@ const blogPostSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-blogPostSchema.pre("validate", function setSlug(next) {
-  if (!this.slug && this.title) this.slug = makeSlug(this.title);
-  next();
+blogPostSchema.pre("validate", async function setSlug() {
+  if (!this.slug && this.title) this.slug = await makeUniqueSlug(this.constructor, this.title, this._id);
 });
 
 module.exports = mongoose.model("BlogPost", blogPostSchema);

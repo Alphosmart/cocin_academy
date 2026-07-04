@@ -1,4 +1,8 @@
 const router = require("express").Router();
+const auditLog = require("../middleware/audit");
+
+// Record all authenticated admin mutations across every resource.
+router.use(auditLog());
 
 router.use("/auth", require("./authRoutes"));
 router.use("/settings", require("./settingsRoutes"));
@@ -15,5 +19,8 @@ router.use("/admissions", require("./admissionRoutes"));
 router.use("/faqs", require("./faqRoutes"));
 router.use("/uploads", require("./uploadRoutes"));
 router.use("/users", require("./userRoutes"));
+router.use("/audit-logs", require("./auditRoutes"));
+router.use("/analytics", require("./analyticsRoutes"));
+router.use("/files", require("./fileRoutes"));
 
 module.exports = router;
