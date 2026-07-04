@@ -93,12 +93,12 @@ function normalizeHeroSlide(slide = {}) {
 export default function Home() {
   const { settings } = useOutletContext();
   const [activeSlide, setActiveSlide] = useState(0);
-  const home = useApi(() => http.get("/homepage"), [], { fallbackData: defaultHomepage });
-  const blogs = useApi(() => http.get("/blogs?status=published"), [], { fallbackData: defaultBlogs });
-  const gallery = useApi(() => http.get("/gallery"), [], { fallbackData: defaultGallery });
-  const events = useApi(() => http.get("/events"), [], { fallbackData: defaultEvents });
-  const testimonials = useApi(() => http.get("/testimonials?active=true"), [], { fallbackData: defaultTestimonials });
-  const academics = useApi(() => http.get("/academics?active=true"), [], { fallbackData: defaultAcademics });
+  const home = useApi(() => http.get("/homepage"), [], { fallbackData: defaultHomepage, cacheKey: "homepage" });
+  const blogs = useApi(() => http.get("/blogs?status=published"), [], { fallbackData: defaultBlogs, cacheKey: "blogs" });
+  const gallery = useApi(() => http.get("/gallery"), [], { fallbackData: defaultGallery, cacheKey: "gallery" });
+  const events = useApi(() => http.get("/events"), [], { fallbackData: defaultEvents, cacheKey: "events" });
+  const testimonials = useApi(() => http.get("/testimonials?active=true"), [], { fallbackData: defaultTestimonials, cacheKey: "testimonials" });
+  const academics = useApi(() => http.get("/academics?active=true"), [], { fallbackData: defaultAcademics, cacheKey: "academics" });
 
   const data = home.data || defaultHomepage;
   const heroSlides = useMemo(() => {
@@ -155,14 +155,13 @@ export default function Home() {
               key={slide.media}
               src={slideEmbedUrl}
               title={slide.title || "Homepage media"}
-              className="pointer-events-none absolute left-1/2 top-1/2 h-[56.25vw] min-h-full w-[177.78vh] min-w-full -translate-x-1/2 -translate-y-1/2 opacity-55 transition-opacity duration-500"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-              allowFullScreen
+              className="pointer-events-none absolute left-1/2 top-1/2 h-[56.25vw] min-h-full w-[177.78vh] min-w-full -translate-x-1/2 -translate-y-1/2 transition-opacity duration-500"
+              allow="autoplay; encrypted-media; picture-in-picture"
             />
           ) : slide.mediaType === "video" && slide.media ? (
             <video
               key={slide.media}
-              className="h-full w-full object-cover opacity-80 transition-opacity duration-500"
+              className="h-full w-full object-cover transition-opacity duration-500"
               poster={slide.image || undefined}
               autoPlay
               muted
@@ -174,17 +173,27 @@ export default function Home() {
               <source src={slide.media} />
             </video>
           ) : slide.media || slide.image ? (
-            <img src={slide.media || slide.image} alt="" className="h-full w-full object-contain object-center opacity-80 transition-opacity duration-500" />
+            <>
+              <img src={slide.media || slide.image} alt="" aria-hidden="true" className="absolute inset-0 h-full w-full scale-110 object-cover opacity-40 blur-2xl" />
+              <img src={slide.media || slide.image} alt="" className="relative h-full w-full object-contain object-center transition-opacity duration-500" />
+            </>
           ) : null}
-          <div className="absolute inset-0 bg-slate-950/25" />
+          {/* Colour overlays only when the hero has no image/video, so real media shows in true colour. */}
+          {!(slide.media || slide.image) && (
+            <>
+              <div className="absolute inset-0 bg-gradient-to-r from-slate-950/85 via-slate-950/60 to-slate-950/20" />
+              <div className="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-transparent to-slate-950/20" />
+            </>
+          )}
         </div>
         <div className="container-pad relative flex min-h-[620px] items-center py-16">
           <div className="max-w-3xl">
             <p className="mb-4 text-sm font-semibold uppercase tracking-wide text-accent">{settings?.motto}</p>
-            <h1 className="text-4xl font-black leading-tight md:text-6xl">{slide.title}</h1>
+            <h1 className="text-4xl font-black leading-tight drop-shadow-sm md:text-6xl">{slide.title}</h1>
             <p className="mt-5 max-w-2xl text-lg text-slate-100">{slide.subtitle}</p>
             <div className="mt-8 flex flex-wrap gap-3">
-              <Link className="btn-primary" to={slide.ctaLink || "/admissions"}>{slide.ctaLabel || "Admissions"}</Link>
+              <Link className="btn inline-flex items-center gap-2 bg-accent px-6 py-3 text-base text-white shadow-lg shadow-accent/30 hover:bg-[#bf171b] focus:ring-2 focus:ring-accent focus:ring-offset-2 focus:ring-offset-slate-950" to={slide.ctaLink || "/admissions"}>{slide.ctaLabel || "Admissions"}<ChevronRight size={18} /></Link>
+              <Link className="btn border border-white/40 bg-white/10 px-6 py-3 text-base text-white backdrop-blur hover:bg-white/20 focus:ring-2 focus:ring-white/60 focus:ring-offset-2 focus:ring-offset-slate-950" to="/about">Explore the School</Link>
             </div>
           </div>
           {heroSlides.length > 1 && (

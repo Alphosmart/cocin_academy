@@ -1,4 +1,5 @@
 import { Navigate, Route, Routes } from "react-router-dom";
+import ScrollToTop from "./components/ScrollToTop";
 import PublicLayout from "./layouts/PublicLayout";
 import AdminLayout from "./layouts/AdminLayout";
 import ProtectedRoute from "./components/admin/ProtectedRoute";
@@ -19,7 +20,10 @@ import Login from "./pages/admin/Login";
 import Dashboard from "./pages/admin/Dashboard";
 import Messages from "./pages/admin/Messages";
 import ChangePassword from "./pages/admin/ChangePassword";
-import Users from "./pages/admin/Users";
+import Security from "./pages/admin/Security";
+import AuditLogs from "./pages/admin/AuditLogs";
+import FileManager from "./pages/admin/FileManager";
+import UsersManager from "./pages/admin/UsersManager";
 import {
   AcademicManager,
   AdmissionsManager,
@@ -37,6 +41,8 @@ import { ADMIN_LOGIN_PATH, ADMIN_LOGIN_ROUTE } from "./config/admin";
 
 export default function App() {
   return (
+    <>
+    <ScrollToTop />
     <Routes>
       <Route element={<PublicLayout />}>
         <Route index element={<Home />} />
@@ -68,13 +74,17 @@ export default function App() {
           <Route path="staff" element={<StaffManager />} />
           <Route path="testimonials" element={<TestimonialManager />} />
           <Route path="faqs" element={<FAQManager />} />
-          <Route path="users" element={<Users />} />
           <Route path="messages" element={<Messages />} />
+          <Route path="files" element={<FileManager />} />
+          <Route path="activity" element={<AuditLogs />} />
+          <Route path="users" element={<UsersManager />} />
+          <Route path="security" element={<Security />} />
           <Route path="change-password" element={<ChangePassword />} />
           <Route path="logout" element={<Navigate to={ADMIN_LOGIN_PATH} replace />} />
         </Route>
       </Route>
       <Route path="*" element={<NotFound />} />
     </Routes>
+    </>
   );
 }

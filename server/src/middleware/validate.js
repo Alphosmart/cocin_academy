@@ -1,19 +1,24 @@
-function removeUndefined(input) {
-  if (Array.isArray(input)) return input.map(removeUndefined);
-  if (!input || typeof input !== "object" || input instanceof Date) return input;
-  return Object.fromEntries(
-    Object.entries(input)
-      .filter(([, value]) => value !== undefined)
-      .map(([key, value]) => [key, removeUndefined(value)])
-  );
+function pathLabel(path) {
+  return path.filter((part) => part !== "body").join(".") || "form";
 }
 
-function formatValidationErrors(error) {
-  return error.issues.reduce((errors, issue) => {
-    const key = issue.path.join(".") || "form";
-    errors[key] = { message: issue.message };
-    return errors;
+function fieldErrorsFromIssues(issues) {
+  return issues.reduce((acc, issue) => {
+    const key = pathLabel(issue.path);
+    const current = acc[key]?.message;
+    acc[key] = { message: current ? `${current}, ${issue.message}` : issue.message };
+    return acc;
   }, {});
+}
+
+function stripUndefined(value) {
+  if (Array.isArray(value)) return value.map(stripUndefined);
+  if (!value || typeof value !== "object") return value;
+  return Object.fromEntries(
+    Object.entries(value)
+      .filter(([, entryValue]) => entryValue !== undefined)
+      .map(([key, entryValue]) => [key, stripUndefined(entryValue)])
+  );
 }
 
 module.exports = (schema) => (req, res, next) => {
@@ -23,12 +28,14 @@ module.exports = (schema) => (req, res, next) => {
     params: req.params
   });
   if (!result.success) {
+    const errors = fieldErrorsFromIssues(result.error.issues);
+    const message = Object.values(errors).map((error) => error.message).join(", ") || "Validation failed";
     return res.status(422).json({
-      message: "Validation failed",
-      errors: formatValidationErrors(result.error)
+      message,
+      errors
     });
   }
-  req.validated = removeUndefined(result.data);
-  if (req.validated.body) req.body = req.validated.body;
+  req.body = stripUndefined(result.data.body || {});
+  req.validated = result.data;
   next();
 };

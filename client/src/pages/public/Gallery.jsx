@@ -9,7 +9,7 @@ import { defaultGallery } from "../../data/defaultContent";
 export default function Gallery() {
   const [category, setCategory] = useState("");
   const [active, setActive] = useState(null);
-  const { data, loading, error } = useApi(() => http.get("/gallery"), [], { fallbackData: defaultGallery });
+  const { data, loading, error } = useApi(() => http.get("/gallery"), [], { fallbackData: defaultGallery, cacheKey: "gallery" });
   const items = useMemo(() => (data || []).filter((i) => !category || i.category === category), [data, category]);
   const categories = [...new Set((data || []).map((i) => i.category))];
   if (loading) return <Loader />;

@@ -9,7 +9,7 @@ import { defaultBlogs } from "../../data/defaultContent";
 export default function SingleBlog() {
   const { slug } = useParams();
   const fallbackPost = defaultBlogs.find((post) => post.slug === slug);
-  const { data, loading, error } = useApi(() => http.get(`/blogs/${slug}`), [slug], { fallbackData: fallbackPost });
+  const { data, loading, error } = useApi(() => http.get(`/blogs/${slug}`), [slug], { fallbackData: fallbackPost, cacheKey: `blog:${slug}` });
   if (loading) return <Loader />;
   if (error) return <ErrorMessage message={error} />;
   setSeo(data.seoTitle || data.title, data.seoDescription || data.excerpt);

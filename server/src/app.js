@@ -6,6 +6,8 @@ const compression = require("compression");
 const morgan = require("morgan");
 const path = require("path");
 
+const mongoose = require("mongoose");
+
 const routes = require("./routes");
 const { notFound, errorHandler } = require("./middleware/error");
 const { requireTrustedOrigin } = require("./middleware/security");
@@ -35,7 +37,16 @@ if (process.env.NODE_ENV !== "production") {
 }
 app.use("/uploads", express.static(path.join(__dirname, "..", "uploads")));
 
-app.get("/api/health", (req, res) => res.json({ status: "ok", database: "connected" }));
+const DB_STATES = ["disconnected", "connected", "connecting", "disconnecting"];
+app.get("/api/health", (req, res) => {
+  const dbState = DB_STATES[mongoose.connection.readyState] || "unknown";
+  res.json({
+    status: dbState === "connected" ? "ok" : "degraded",
+    database: dbState,
+    uptime: Math.round(process.uptime()),
+    timestamp: new Date().toISOString()
+  });
+});
 app.use("/api", requireTrustedOrigin);
 app.use("/api", routes);
 app.use(notFound);

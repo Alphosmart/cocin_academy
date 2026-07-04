@@ -1,6 +1,7 @@
 const router = require("express").Router();
 const BlogPost = require("../models/BlogPost");
 const crud = require("../controllers/crudController");
+const mountAdminOps = require("./adminOps");
 const { protect, adminOnly, optionalAuth } = require("../middleware/auth");
 const { adminRateLimit } = require("../middleware/security");
 const validate = require("../middleware/validate");
@@ -13,5 +14,7 @@ router.get("/:slug", optionalAuth, crud.getBySlug(BlogPost, { publicFilter: publ
 router.post("/", adminRateLimit, protect, adminOnly, validate(blogSchema), crud.create(BlogPost));
 router.put("/:id", adminRateLimit, protect, adminOnly, validate(blogSchema), crud.update(BlogPost));
 router.delete("/:id", adminRateLimit, protect, adminOnly, crud.remove(BlogPost));
+
+mountAdminOps(router, BlogPost);
 
 module.exports = router;

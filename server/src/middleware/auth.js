@@ -32,6 +32,15 @@ const adminOnly = (req, res, next) => {
   next();
 };
 
+const developerOnly = (req, res, next) => {
+  if (!req.user?.isDeveloper) {
+    const error = new Error("Developer access required");
+    error.statusCode = 403;
+    return next(error);
+  }
+  next();
+};
+
 const optionalAuth = asyncHandler(async (req, res, next) => {
   const header = req.headers.authorization || "";
   const token = header.startsWith("Bearer ") ? header.slice(7) : getAuthCookie(req);
@@ -46,4 +55,4 @@ const optionalAuth = asyncHandler(async (req, res, next) => {
   next();
 });
 
-module.exports = { protect, adminOnly, optionalAuth };
+module.exports = { protect, adminOnly, developerOnly, optionalAuth };

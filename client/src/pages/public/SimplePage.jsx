@@ -11,7 +11,7 @@ const titles = { about: "About Us", "privacy-policy": "Privacy Policy" };
 export default function SimplePage({ slug: fixedSlug }) {
   const params = useParams();
   const slug = fixedSlug || params.slug;
-  const { data, loading, error } = useApi(() => http.get(`/pages/${slug}`), [slug], { fallbackData: defaultPages[slug] });
+  const { data, loading, error } = useApi(() => http.get(`/pages/${slug}`), [slug], { fallbackData: defaultPages[slug], cacheKey: `page:${slug}` });
   if (loading) return <Loader />;
   if (error) return <ErrorMessage message={error} />;
   setSeo(data.seoTitle || data.title, data.seoDescription || data.excerpt);
