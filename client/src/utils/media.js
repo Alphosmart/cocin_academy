@@ -82,7 +82,8 @@ export function isDirectVideoUrl(value) {
 }
 
 export function detectMediaType(value, fallback = "image") {
-  if (getVideoEmbedUrl(value) || isDirectVideoUrl(value)) return "video";
+  if (getVideoEmbedUrl(value)) return "embed"; // YouTube / Vimeo and other embeddable links
+  if (isDirectVideoUrl(value)) return "video"; // direct/uploaded video files
   if (imagePattern.test(String(value || ""))) return "image";
   return fallback || "image";
 }
