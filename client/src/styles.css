@@ -39,3 +39,20 @@ body {
 .card {
   @apply rounded-lg border border-slate-200 bg-white shadow-sm;
 }
+
+/* Slow "Ken Burns" zoom for hero carousel images. Keyed per slide so it
+   restarts from the start each time the image changes. */
+@keyframes heroZoom {
+  from { transform: scale(1); }
+  to { transform: scale(1.12); }
+}
+
+.hero-zoom {
+  animation: heroZoom 8s ease-out both;
+  transform-origin: center;
+  will-change: transform;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-zoom { animation: none; }
+}

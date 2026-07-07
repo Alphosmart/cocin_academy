@@ -81,7 +81,7 @@ const admissionsSteps = [
 const subjects = ["Math", "English", "Word Building", "Literature and Creative Writing", "Science", "Social Studies", "Bible Reading"];
 const activities = ["Arts and crafts", "Worship and choir", "Sports huddles", "Press club", "ICT and web design", "Community service projects"];
 const schoolEvents = ["Yearly inter-house sports week", "Cultural Christmas program", "Field trips", "National, Regional, and International Student Conventions", "COCIN Academy yearly thanksgiving Sunday service", "Graduation and special resurrection programs"];
-const IMAGE_SLIDE_MS = 6500;
+const IMAGE_SLIDE_MS = 8000;
 const VIDEO_FALLBACK_MS = 45000;
 
 function normalizeHeroSlide(slide = {}) {
@@ -175,7 +175,7 @@ export default function Home() {
           ) : slide.media || slide.image ? (
             <>
               <img src={slide.media || slide.image} alt="" aria-hidden="true" className="absolute inset-0 h-full w-full scale-110 object-cover opacity-40 blur-2xl" />
-              <img src={slide.media || slide.image} alt="" className="relative h-full w-full object-contain object-center transition-opacity duration-500" />
+              <img key={`hero-${activeSlide}`} src={slide.media || slide.image} alt="" className="hero-zoom relative h-full w-full object-contain object-center transition-opacity duration-500" />
             </>
           ) : null}
           {/* Colour overlays only when the hero has no image/video, so real media shows in true colour. */}

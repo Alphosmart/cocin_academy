@@ -196,7 +196,8 @@ export function MixedMediaUpload({ label, description, value, mediaType, onChang
       {value && (
         <select className="input mt-2" value={previewType} onChange={(e) => onChange(value || "", e.target.value)}>
           <option value="image">Image</option>
-          <option value="video">Video</option>
+          <option value="video">Video (uploaded / direct file)</option>
+          <option value="embed">Embed (YouTube / Vimeo link)</option>
         </select>
       )}
       {value && (
