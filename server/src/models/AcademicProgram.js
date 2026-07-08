@@ -5,6 +5,7 @@ const academicProgramSchema = new mongoose.Schema(
     title: { type: String, required: true },
     level: String,
     description: { type: String, required: true },
+    curriculum: [String],
     image: String,
     order: { type: Number, default: 0 },
     isActive: { type: Boolean, default: true }

@@ -9,6 +9,9 @@ const pageContentSchema = new mongoose.Schema(
     mission: String,
     vision: String,
     coreValues: [String],
+    principalName: String,
+    principalImage: String,
+    principalQualification: String,
     seoTitle: String,
     seoDescription: String
   },

@@ -185,7 +185,7 @@ export default function ResourceManager({ title, endpoint, fields, columns = ["t
   function buildPayload(source) {
     const payload = { ...source };
     ["tags"].forEach((key) => { if (typeof payload[key] === "string") payload[key] = payload[key].split(",").map((x) => x.trim()).filter(Boolean); });
-    ["coreValues", "requirements"].forEach((key) => { if (typeof payload[key] === "string") payload[key] = payload[key].split("\n").map((x) => x.trim()).filter(Boolean); });
+    ["coreValues", "requirements", "curriculum"].forEach((key) => { if (typeof payload[key] === "string") payload[key] = payload[key].split("\n").map((x) => x.trim()).filter(Boolean); });
     fields.filter((field) => field.type === "repeatable").forEach((field) => {
       payload[field.name] = cleanRepeatableItems(field, payload[field.name]);
     });
@@ -221,7 +221,7 @@ export default function ResourceManager({ title, endpoint, fields, columns = ["t
 
   function edit(item) {
     setEditing(item._id);
-    setForm({ ...emptyFromFields(fields), ...item, tags: item.tags?.join(", ") || item.tags, coreValues: item.coreValues?.join("\n") || item.coreValues, requirements: item.requirements?.join("\n") || item.requirements });
+    setForm({ ...emptyFromFields(fields), ...item, tags: item.tags?.join(", ") || item.tags, coreValues: item.coreValues?.join("\n") || item.coreValues, requirements: item.requirements?.join("\n") || item.requirements, curriculum: item.curriculum?.join("\n") || item.curriculum });
     scrollToTop();
   }
 
