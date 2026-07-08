@@ -101,6 +101,7 @@ const academicSchema = z.object({
     title: titleField,
     level: z.string().max(100).optional(),
     description: z.string().max(1000).optional(),
+    curriculum: z.array(z.string()).optional(),
     image: imageField.optional(),
     order: optionalNumberField,
     isActive: z.boolean().optional()
@@ -113,6 +114,9 @@ const pageSchema = z.object({
     title: titleField,
     excerpt: z.string().max(500).optional(),
     content: z.string().optional(),
+    principalName: z.string().max(200).optional(),
+    principalImage: z.string().max(1000).optional(),
+    principalQualification: z.string().max(300).optional(),
     mission: z.string().max(1000).optional(),
     vision: z.string().max(1000).optional(),
     coreValues: z.array(z.string()).optional(),

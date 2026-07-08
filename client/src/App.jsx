@@ -5,6 +5,7 @@ import AdminLayout from "./layouts/AdminLayout";
 import ProtectedRoute from "./components/admin/ProtectedRoute";
 import Home from "./pages/public/Home";
 import SimplePage from "./pages/public/SimplePage";
+import HeadOfSchoolWelcome from "./pages/public/HeadOfSchoolWelcome";
 import Academics from "./pages/public/Academics";
 import Admissions from "./pages/public/Admissions";
 import Blog from "./pages/public/Blog";
@@ -47,6 +48,7 @@ export default function App() {
       <Route element={<PublicLayout />}>
         <Route index element={<Home />} />
         <Route path="about" element={<SimplePage slug="about" />} />
+        <Route path="head-of-school" element={<HeadOfSchoolWelcome />} />
         <Route path="academics" element={<Academics />} />
         <Route path="admissions" element={<Admissions />} />
         <Route path="blog" element={<Blog />} />

@@ -1,5 +1,5 @@
-import { BookOpen, CheckCircle2, ChevronLeft, ChevronRight, GraduationCap, HeartHandshake, MapPin, Phone, ShieldCheck, Sparkles } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { BookOpen, CheckCircle2, ChevronLeft, ChevronRight, GraduationCap, HeartHandshake, MapPin, Phone, ShieldCheck, Sparkles, Volume2, VolumeX } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useOutletContext } from "react-router-dom";
 import http from "../../api/http";
 import { useApi } from "../../hooks/useApi";
@@ -93,6 +93,8 @@ function normalizeHeroSlide(slide = {}) {
 export default function Home() {
   const { settings } = useOutletContext();
   const [activeSlide, setActiveSlide] = useState(0);
+  const [heroMuted, setHeroMuted] = useState(true);
+  const heroVideoRef = useRef(null);
   const home = useApi(() => http.get("/homepage"), [], { fallbackData: defaultHomepage, cacheKey: "homepage" });
   const blogs = useApi(() => http.get("/blogs?status=published"), [], { fallbackData: defaultBlogs, cacheKey: "blogs" });
   const gallery = useApi(() => http.get("/gallery"), [], { fallbackData: defaultGallery, cacheKey: "gallery" });
@@ -117,11 +119,24 @@ export default function Home() {
     return [primarySlide];
   }, [data]);
   const slide = heroSlides[activeSlide] || heroSlides[0] || {};
-  const slideEmbedUrl = slide.mediaType === "embed" ? getEmbedUrl(slide.media, { autoplay: true }) : "";
+  const slideEmbedUrl = slide.mediaType === "embed" ? getEmbedUrl(slide.media, { autoplay: true, muted: heroMuted }) : "";
 
   useEffect(() => {
     setActiveSlide(0);
   }, [heroSlides.length]);
+
+  // Start each slide muted (browsers require it for autoplay); the viewer opts in.
+  useEffect(() => {
+    setHeroMuted(true);
+  }, [activeSlide]);
+
+  // Keep the <video> element's muted property in sync and resume when unmuting.
+  useEffect(() => {
+    if (heroVideoRef.current) {
+      heroVideoRef.current.muted = heroMuted;
+      if (!heroMuted) heroVideoRef.current.play?.().catch(() => {});
+    }
+  }, [heroMuted, slide.media]);
 
   useEffect(() => {
     if (heroSlides.length < 2) return undefined;
@@ -152,15 +167,16 @@ export default function Home() {
         <div className="absolute inset-0">
           {slide.mediaType === "embed" && slideEmbedUrl ? (
             <iframe
-              key={slide.media}
+              key={`${slide.media}-${heroMuted ? "muted" : "unmuted"}`}
               src={slideEmbedUrl}
               title={slide.title || "Homepage media"}
-              className="pointer-events-none absolute left-1/2 top-1/2 h-[56.25vw] min-h-full w-[177.78vh] min-w-full -translate-x-1/2 -translate-y-1/2 transition-opacity duration-500"
+              className={`absolute left-1/2 top-1/2 h-[56.25vw] min-h-full w-[177.78vh] min-w-full -translate-x-1/2 -translate-y-1/2 transition-opacity duration-500 ${heroMuted ? "pointer-events-none" : ""}`}
               allow="autoplay; encrypted-media; picture-in-picture"
             />
           ) : slide.mediaType === "video" && slide.media ? (
             <video
               key={slide.media}
+              ref={heroVideoRef}
               className="h-full w-full object-cover transition-opacity duration-500"
               poster={slide.image || undefined}
               autoPlay
@@ -196,6 +212,17 @@ export default function Home() {
               <Link className="btn border border-white/40 bg-white/10 px-6 py-3 text-base text-white backdrop-blur hover:bg-white/20 focus:ring-2 focus:ring-white/60 focus:ring-offset-2 focus:ring-offset-slate-950" to="/about">Explore the School</Link>
             </div>
           </div>
+          {(slide.mediaType === "video" || slide.mediaType === "embed") && slide.media && (
+            <button
+              type="button"
+              onClick={() => setHeroMuted((m) => !m)}
+              aria-label={heroMuted ? "Unmute video" : "Mute video"}
+              className="absolute bottom-8 left-4 z-20 inline-flex items-center gap-2 rounded-full bg-black/50 px-4 py-2 text-sm font-medium text-white backdrop-blur transition hover:bg-black/70 sm:left-6 lg:left-8"
+            >
+              {heroMuted ? <VolumeX size={18} /> : <Volume2 size={18} />}
+              <span>{heroMuted ? "Tap for sound" : "Mute"}</span>
+            </button>
+          )}
           {heroSlides.length > 1 && (
             <>
               <div className="absolute bottom-8 left-1/2 flex -translate-x-1/2 gap-2">
