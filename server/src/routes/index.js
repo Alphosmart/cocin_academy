@@ -16,6 +16,8 @@ router.use("/staff", require("./staffRoutes"));
 router.use("/contact", require("./contactRoutes"));
 router.use("/academics", require("./academicRoutes"));
 router.use("/admissions", require("./admissionRoutes"));
+router.use("/admission-applications", require("./admissionApplicationRoutes"));
+router.use("/admission-payments", require("./admissionPaymentRoutes"));
 router.use("/faqs", require("./faqRoutes"));
 router.use("/uploads", require("./uploadRoutes"));
 router.use("/users", require("./userRoutes"));

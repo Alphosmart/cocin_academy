@@ -20,6 +20,8 @@ import NotFound from "./pages/public/NotFound";
 import Login from "./pages/admin/Login";
 import Dashboard from "./pages/admin/Dashboard";
 import Messages from "./pages/admin/Messages";
+import AdmissionApplications from "./pages/admin/AdmissionApplications";
+import AdmissionPaymentSettings from "./pages/admin/AdmissionPaymentSettings";
 import ChangePassword from "./pages/admin/ChangePassword";
 import Security from "./pages/admin/Security";
 import AuditLogs from "./pages/admin/AuditLogs";
@@ -73,6 +75,8 @@ export default function App() {
           <Route path="events" element={<EventManager />} />
           <Route path="academics" element={<AcademicManager />} />
           <Route path="admissions" element={<AdmissionsManager />} />
+          <Route path="admission-payment" element={<AdmissionPaymentSettings />} />
+          <Route path="admission-applications" element={<AdmissionApplications />} />
           <Route path="staff" element={<StaffManager />} />
           <Route path="testimonials" element={<TestimonialManager />} />
           <Route path="faqs" element={<FAQManager />} />
