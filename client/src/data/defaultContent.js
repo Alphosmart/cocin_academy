@@ -81,7 +81,11 @@ export const defaultAdmissions = {
     { title: "Interview", description: "Attend a parent-student interview." },
     { title: "Confirmation", description: "Receive admission confirmation from the school." }
   ],
-  ctaText: "Speak with admissions"
+  ctaText: "Speak with admissions",
+  applicationFeeEnabled: false,
+  applicationFeeAmount: 0,
+  applicationFeeCurrency: "NGN",
+  paymentProvider: "paystack"
 };
 
 export const defaultPages = {

@@ -39,7 +39,7 @@ export default function PublicLayout() {
 
   return (
     <div className="min-h-screen bg-slate-50">
-      <header className="sticky top-0 z-40 border-b border-slate-200 bg-white/95 backdrop-blur">
+      <header className="sticky top-0 z-40 border-b border-slate-200 bg-white/95 backdrop-blur print:hidden">
         <div className="container-pad flex h-20 items-center justify-between">
           <Link to="/" className="flex items-center gap-3">
             {settings?.logo ? <img src={settings.logo} alt="" className="h-12 w-12 rounded-md bg-white object-contain p-0.5" /> : <div className="h-11 w-11 rounded-md bg-brand" />}
@@ -57,8 +57,8 @@ export default function PublicLayout() {
         )}
       </header>
       <Outlet context={{ settings }} />
-      {whatsapp && <a className="fixed bottom-5 right-5 z-40 rounded-full bg-accent p-4 text-white shadow-lg hover:bg-[#bf171b]" href={`https://wa.me/${whatsapp}`} target="_blank" rel="noreferrer" aria-label="WhatsApp"><MessageCircle /></a>}
-      <footer className="border-t border-slate-200 bg-white">
+      {whatsapp && <a className="fixed bottom-5 right-5 z-40 rounded-full bg-accent p-4 text-white shadow-lg hover:bg-[#bf171b] print:hidden" href={`https://wa.me/${whatsapp}`} target="_blank" rel="noreferrer" aria-label="WhatsApp"><MessageCircle /></a>}
+      <footer className="border-t border-slate-200 bg-white print:hidden">
         <div className="container-pad grid gap-8 py-12 md:grid-cols-4">
           <div>
             <h2 className="text-xl font-bold text-slate-950">{settings?.schoolName}</h2>

@@ -7,6 +7,10 @@ const admissionContentSchema = new mongoose.Schema(
     requirements: [String],
     processSteps: [{ title: String, description: String }],
     ctaText: String,
+    applicationFeeEnabled: { type: Boolean, default: false },
+    applicationFeeAmount: { type: Number, default: 0 },
+    applicationFeeCurrency: { type: String, default: "NGN" },
+    paymentProvider: { type: String, default: "paystack" },
     seoTitle: String,
     seoDescription: String
   },
