@@ -18,6 +18,7 @@ const contentModels = [
   require("../models/HomepageContent"),
   require("../models/PageContent"),
   require("../models/AdmissionContent"),
+  require("../models/AdmissionApplication"),
   require("../models/SiteSettings")
 ];
 

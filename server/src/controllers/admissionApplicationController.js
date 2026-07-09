@@ -3,6 +3,8 @@ const AdmissionApplication = require("../models/AdmissionApplication");
 const AdmissionContent = require("../models/AdmissionContent");
 const AdmissionPayment = require("../models/AdmissionPayment");
 const asyncHandler = require("../middleware/asyncHandler");
+const { uploadAdmissionDocument } = require("../middleware/upload");
+const { cleanupRemovedMedia, deleteMediaByUrl } = require("../utils/media");
 
 const FIELD_GROUPS = [
   {
@@ -133,6 +135,7 @@ const fieldValueSchema = z.union([
 
 const applicationSchema = z.object({
   paymentReference: z.string().trim().max(80).optional(),
+  documentLabels: z.array(z.string().trim().max(120)).max(8).optional().default([]),
   formData: z
     .record(z.string().max(100).regex(/^[A-Za-z0-9.]+$/, "Invalid form field name"), fieldValueSchema)
     .refine((data) => Object.keys(data).length <= 100, "Too many form fields")
@@ -150,6 +153,30 @@ function paymentRequired(settings) {
 
 function amountSubunit(amount) {
   return Math.round(Number(amount || 0) * 100);
+}
+
+function apiBaseUrl(req) {
+  return process.env.PUBLIC_API_URL || `${req.protocol}://${req.get("host")}`;
+}
+
+function parseJsonField(value, fallback, fieldName) {
+  if (value === undefined || value === null || value === "") return fallback;
+  if (typeof value !== "string") return value;
+  try {
+    return JSON.parse(value);
+  } catch (error) {
+    const parseError = new Error(`Invalid ${fieldName}`);
+    parseError.statusCode = 400;
+    throw parseError;
+  }
+}
+
+function parseApplicationBody(body) {
+  return applicationSchema.parse({
+    paymentReference: body.paymentReference || undefined,
+    documentLabels: parseJsonField(body.documentLabels, [], "document labels"),
+    formData: parseJsonField(body.formData, body.formData, "form data")
+  });
 }
 
 async function verifiedPaymentForApplication(settings, reference) {
@@ -238,6 +265,38 @@ function applicantName(formData) {
     .join(" ");
 }
 
+function safeDocumentLabel(value) {
+  const label = String(value || "").trim().slice(0, 120);
+  return label || "Admission document";
+}
+
+async function storeAdmissionDocuments(req, labels = []) {
+  const files = Array.isArray(req.files) ? req.files : [];
+  const documents = [];
+  const baseUrl = apiBaseUrl(req);
+
+  try {
+    for (const [index, file] of files.entries()) {
+      const result = await uploadAdmissionDocument(file, "admission-documents", baseUrl);
+      documents.push({
+        label: safeDocumentLabel(labels[index]),
+        originalName: file.originalname,
+        url: result.url,
+        publicId: result.publicId,
+        resourceType: result.resourceType,
+        mimeType: result.mimeType || file.mimetype,
+        size: file.size,
+        uploadedAt: new Date()
+      });
+    }
+  } catch (error) {
+    await Promise.all(documents.map((document) => deleteMediaByUrl(document.url)));
+    throw error;
+  }
+
+  return documents;
+}
+
 function escapeHtml(value) {
   return String(value ?? "")
     .replace(/&/g, "&amp;")
@@ -254,6 +313,31 @@ function safeFileName(value) {
     .replace(/^-+|-+$/g, "")
     .slice(0, 90);
   return safe || "admission-application";
+}
+
+function renderDocumentsHtml(documents = []) {
+  if (!documents.length) {
+    return `
+      <section>
+        <h2>Uploaded Documents</h2>
+        <p>No documents were uploaded with this application.</p>
+      </section>
+    `;
+  }
+
+  const rows = documents.map((document) => `
+    <tr>
+      <th>${escapeHtml(document.label || "Admission document")}</th>
+      <td><a href="${escapeHtml(document.url)}">${escapeHtml(document.originalName || document.url)}</a></td>
+    </tr>
+  `).join("");
+
+  return `
+    <section>
+      <h2>Uploaded Documents</h2>
+      <table>${rows}</table>
+    </section>
+  `;
 }
 
 function renderApplicationHtml(application) {
@@ -299,14 +383,15 @@ function renderApplicationHtml(application) {
     <p><strong>Application number:</strong> ${escapeHtml(application.applicationNumber)}</p>
     <p><strong>Applicant:</strong> ${escapeHtml(application.applicantName)}</p>
     <p><strong>Submitted:</strong> ${escapeHtml(submittedAt)}</p>
-  </header>
-  ${sections}
-</body>
-</html>`;
+    </header>
+    ${sections}
+    ${renderDocumentsHtml(application.documents || [])}
+  </body>
+  </html>`;
 }
 
 exports.createApplication = asyncHandler(async (req, res) => {
-  const parsed = applicationSchema.parse(req.body);
+  const parsed = parseApplicationBody(req.body);
   const settings = await admissionSettings();
   const payment = await verifiedPaymentForApplication(settings, parsed.paymentReference);
   const formData = normalizeFormData(parsed.formData);
@@ -315,18 +400,27 @@ exports.createApplication = asyncHandler(async (req, res) => {
   if (!name) return res.status(400).json({ message: "Please enter the pupil's name before submitting." });
   if (!stringValue(formData, "classApplyingFor")) return res.status(400).json({ message: "Please enter the class applying for before submitting." });
 
-  const application = await AdmissionApplication.create({
-    applicationNumber: makeApplicationNumber(),
-    applicantName: name,
-    applicantEmail: stringValue(formData, "father.email") || stringValue(formData, "mother.email"),
-    applicantPhone: stringValue(formData, "father.phone") || stringValue(formData, "mother.phone"),
-    classApplyingFor: stringValue(formData, "classApplyingFor"),
-    payment: payment?._id,
-    paymentReference: payment?.reference,
-    feePaid: payment?.amount || 0,
-    feeCurrency: payment?.currency || settings.applicationFeeCurrency || "NGN",
-    formData
-  });
+  const documents = await storeAdmissionDocuments(req, parsed.documentLabels);
+  let application;
+
+  try {
+    application = await AdmissionApplication.create({
+      applicationNumber: makeApplicationNumber(),
+      applicantName: name,
+      applicantEmail: stringValue(formData, "father.email") || stringValue(formData, "mother.email"),
+      applicantPhone: stringValue(formData, "father.phone") || stringValue(formData, "mother.phone"),
+      classApplyingFor: stringValue(formData, "classApplyingFor"),
+      payment: payment?._id,
+      paymentReference: payment?.reference,
+      feePaid: payment?.amount || 0,
+      feeCurrency: payment?.currency || settings.applicationFeeCurrency || "NGN",
+      formData,
+      documents
+    });
+  } catch (error) {
+    await Promise.all(documents.map((document) => deleteMediaByUrl(document.url)));
+    throw error;
+  }
 
   if (payment) {
     payment.usedAt = new Date();
@@ -364,6 +458,7 @@ exports.downloadApplication = asyncHandler(async (req, res) => {
 exports.deleteApplication = asyncHandler(async (req, res) => {
   const application = await AdmissionApplication.findByIdAndDelete(req.params.id);
   if (!application) return res.status(404).json({ message: "Application not found" });
+  await cleanupRemovedMedia(application, null);
   res.locals.audit = { resourceId: application._id, title: application.applicantName };
   res.json({ message: "Deleted successfully" });
 });

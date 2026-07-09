@@ -5,6 +5,7 @@ const asyncHandler = require("../middleware/asyncHandler");
 
 const PAYSTACK_BASE_URL = "https://api.paystack.co";
 const REFERENCE_PATTERN = /^[A-Za-z0-9._=-]+$/;
+const PAYMENT_UNAVAILABLE_MESSAGE = "Online payment is temporarily unavailable. Please contact the school office or try again later.";
 
 const initializeSchema = z.object({
   fullName: z.string().trim().min(2).max(160),
@@ -38,12 +39,17 @@ function makeReference() {
   return `ADM-FEE-${date}-${suffix}`;
 }
 
+function paystackError(message, statusCode = 502) {
+  const error = new Error(message);
+  error.statusCode = statusCode;
+  error.publicMessage = PAYMENT_UNAVAILABLE_MESSAGE;
+  return error;
+}
+
 function requirePaystackSecret() {
   const secret = process.env.PAYSTACK_SECRET_KEY;
   if (!secret) {
-    const error = new Error("Paystack is not configured. Please set PAYSTACK_SECRET_KEY on the server.");
-    error.statusCode = 500;
-    throw error;
+    throw paystackError("Paystack is not configured. Please set PAYSTACK_SECRET_KEY on the server.", 503);
   }
   return secret;
 }
@@ -59,9 +65,7 @@ async function paystackRequest(path, options = {}) {
   });
   const data = await response.json().catch(() => ({}));
   if (!response.ok || data.status === false) {
-    const error = new Error(data.message || "Paystack request failed");
-    error.statusCode = response.status || 502;
-    throw error;
+    throw paystackError(data.message || "Paystack request failed", response.status || 502);
   }
   return data;
 }
@@ -106,9 +110,7 @@ exports.initializePayment = asyncHandler(async (req, res) => {
     });
 
     if (!initialized.data?.authorization_url) {
-      const error = new Error("Paystack did not return a payment link.");
-      error.statusCode = 502;
-      throw error;
+      throw paystackError("Paystack did not return a payment link.");
     }
 
     payment.authorizationUrl = initialized.data?.authorization_url;

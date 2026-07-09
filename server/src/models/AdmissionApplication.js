@@ -14,7 +14,19 @@ const admissionApplicationSchema = new mongoose.Schema(
     formData: {
       type: mongoose.Schema.Types.Mixed,
       default: {}
-    }
+    },
+    documents: [
+      {
+        label: String,
+        originalName: String,
+        url: String,
+        publicId: String,
+        resourceType: String,
+        mimeType: String,
+        size: Number,
+        uploadedAt: { type: Date, default: Date.now }
+      }
+    ]
   },
   {
     timestamps: true

@@ -1,4 +1,4 @@
-import { CreditCard, FileText, Printer, RotateCcw, Send } from "lucide-react";
+import { CreditCard, FileText, Printer, RotateCcw, Send, Upload, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
 import { useOutletContext } from "react-router-dom";
@@ -57,12 +57,33 @@ const officialUseFields = [
   ["School Stamp", "schoolStamp", "text", "md:col-span-2"]
 ];
 
+const PAYMENT_UNAVAILABLE_MESSAGE = "Online payment is temporarily unavailable. Please contact the school office or try again later.";
+const PRIVATE_PAYMENT_ERROR_PATTERN = /paystack|secret[_\s-]?key|authorization|api[_\s-]?key/i;
+const DOCUMENT_ACCEPT = "application/pdf,image/jpeg,image/png,image/webp,image/gif";
+const MAX_ADMISSION_DOCUMENTS = 8;
+
 function formatFee(amount, currency = "NGN") {
   return new Intl.NumberFormat("en-NG", {
     style: "currency",
     currency,
     maximumFractionDigits: 0
   }).format(Number(amount || 0));
+}
+
+function customerPaymentErrorMessage(err, fallback = PAYMENT_UNAVAILABLE_MESSAGE) {
+  const message = err.response?.data?.message || err.message || "";
+  if (!message || PRIVATE_PAYMENT_ERROR_PATTERN.test(message)) return fallback;
+  return message;
+}
+
+function formatFileSize(bytes = 0) {
+  if (!bytes) return "";
+  if (bytes < 1024 * 1024) return `${Math.ceil(bytes / 1024)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+function documentEntries(documentFiles) {
+  return Object.entries(documentFiles).flatMap(([label, files]) => (files || []).map((file) => ({ label, file })));
 }
 
 function clearPaymentQuery() {
@@ -130,6 +151,60 @@ function CheckboxGroup({ legend, name, options, className = "", inputType = "che
   );
 }
 
+function DocumentUploadGroup({ documentFiles, onSelect, onRemove }) {
+  const selectedCount = documentEntries(documentFiles).length;
+
+  return (
+    <div className="mt-6 grid gap-4 print:hidden">
+      <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
+        <h3 className="text-sm font-bold text-slate-950">Upload documents</h3>
+        <p className="text-xs font-semibold text-slate-500">{selectedCount}/{MAX_ADMISSION_DOCUMENTS} selected</p>
+      </div>
+      <p className="text-sm text-slate-600">PDF or image files only. Each file can be up to 8 MB.</p>
+      <div className="grid gap-3 md:grid-cols-2">
+        {documentOptions.map((option) => {
+          const files = documentFiles[option] || [];
+          return (
+            <div key={option} className="rounded-md border border-slate-200 bg-slate-50 p-3">
+              <div className="flex items-start justify-between gap-3">
+                <p className="text-sm font-semibold text-slate-800">{option}</p>
+                {files.length > 0 && <span className="shrink-0 rounded bg-white px-2 py-0.5 text-xs font-semibold text-brand">{files.length}</span>}
+              </div>
+              <label className="mt-3 flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-md border border-dashed border-slate-300 bg-white px-3 text-sm font-semibold text-slate-700 transition hover:border-brand hover:text-brand">
+                <Upload size={16} />
+                Select file
+                <input
+                  className="sr-only"
+                  accept={DOCUMENT_ACCEPT}
+                  multiple
+                  type="file"
+                  onChange={(event) => {
+                    onSelect(option, event.target.files);
+                    event.target.value = "";
+                  }}
+                />
+              </label>
+              {files.length > 0 && (
+                <ul className="mt-3 grid gap-2">
+                  {files.map((file, index) => (
+                    <li key={`${file.name}-${file.size}-${index}`} className="flex min-w-0 items-center justify-between gap-2 rounded bg-white px-2 py-1.5 text-xs text-slate-600">
+                      <span className="min-w-0 truncate">{file.name}</span>
+                      <span className="shrink-0 text-slate-400">{formatFileSize(file.size)}</span>
+                      <button className="shrink-0 rounded p-1 text-slate-500 hover:bg-red-50 hover:text-red-600" type="button" aria-label={`Remove ${file.name}`} onClick={() => onRemove(option, index)}>
+                        <X size={14} />
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 function ParentBlock({ title, prefix }) {
   return (
     <div className="grid gap-4">
@@ -191,6 +266,7 @@ export default function Admissions() {
   const [submittedApplication, setSubmittedApplication] = useState(null);
   const [paymentReference, setPaymentReference] = useState("");
   const [paymentForm, setPaymentForm] = useState({ fullName: "", email: "", phone: "" });
+  const [documentFiles, setDocumentFiles] = useState({});
   const [paymentSettingsLoaded, setPaymentSettingsLoaded] = useState(false);
   const [paymentSettingsError, setPaymentSettingsError] = useState("");
   const formRef = useRef(null);
@@ -198,12 +274,10 @@ export default function Admissions() {
   const { data, loading, error, setData } = useApi(() => http.get("/admissions"), [], { fallbackData: defaultAdmissions, cacheKey: "admissions" });
 
   const paymentRequired = Boolean(data?.applicationFeeEnabled && Number(data?.applicationFeeAmount) > 0);
+  const canAccessApplicationForm = !paymentRequired || Boolean(paymentReference);
+  const shouldShowApplicationForm = showApplicationForm && paymentSettingsLoaded && canAccessApplicationForm;
   const feeLabel = formatFee(data?.applicationFeeAmount, data?.applicationFeeCurrency || "NGN");
-  const applyButtonLabel = !paymentSettingsLoaded
-    ? "Checking payment..."
-    : paymentRequired && !paymentReference
-      ? `Pay ${feeLabel} to apply`
-      : "Apply now";
+  const applyButtonLabel = "Apply";
 
   useEffect(() => {
     let active = true;
@@ -254,7 +328,7 @@ export default function Admissions() {
       } catch (err) {
         setShowPaymentForm(true);
         clearPaymentQuery();
-        toast.error(err.response?.data?.message || "Unable to verify payment.");
+        toast.error(customerPaymentErrorMessage(err, "Unable to verify payment."));
       } finally {
         setIsVerifyingPayment(false);
       }
@@ -264,11 +338,11 @@ export default function Admissions() {
   }, [paymentSettingsLoaded, paymentRequired, paymentReference, isVerifyingPayment]);
 
   useEffect(() => {
-    if ((!paymentSettingsLoaded || paymentRequired) && showApplicationForm && !paymentReference) {
+    if (showApplicationForm && (!paymentSettingsLoaded || !canAccessApplicationForm)) {
       setShowApplicationForm(false);
       setShowPaymentForm(paymentSettingsLoaded && paymentRequired);
     }
-  }, [paymentSettingsLoaded, paymentRequired, showApplicationForm, paymentReference]);
+  }, [canAccessApplicationForm, paymentSettingsLoaded, paymentRequired, showApplicationForm]);
 
   if (loading) return <Loader />;
   if (error) return <ErrorMessage message={error} />;
@@ -282,7 +356,7 @@ export default function Admissions() {
       toast.error(paymentSettingsError);
       return;
     }
-    if (paymentRequired && !paymentReference) {
+    if (!canAccessApplicationForm) {
       setShowPaymentForm(true);
       setShowApplicationForm(false);
       window.requestAnimationFrame(() => {
@@ -297,6 +371,39 @@ export default function Admissions() {
     });
   }
 
+  function selectDocumentFiles(label, fileList) {
+    const files = Array.from(fileList || []);
+    const otherCount = Object.entries(documentFiles).reduce((sum, [key, value]) => (key === label ? sum : sum + (value?.length || 0)), 0);
+    const availableSlots = Math.max(MAX_ADMISSION_DOCUMENTS - otherCount, 0);
+    const acceptedFiles = files.slice(0, availableSlots);
+
+    if (files.length > acceptedFiles.length) {
+      toast.error(`Upload up to ${MAX_ADMISSION_DOCUMENTS} documents.`);
+    }
+
+    setDocumentFiles((current) => {
+      const next = { ...current };
+      if (acceptedFiles.length) next[label] = acceptedFiles;
+      else delete next[label];
+      return next;
+    });
+  }
+
+  function removeDocumentFile(label, index) {
+    setDocumentFiles((current) => {
+      const nextFiles = (current[label] || []).filter((_, fileIndex) => fileIndex !== index);
+      const next = { ...current };
+      if (nextFiles.length) next[label] = nextFiles;
+      else delete next[label];
+      return next;
+    });
+  }
+
+  function resetApplicationForm() {
+    setSubmittedApplication(null);
+    setDocumentFiles({});
+  }
+
   async function startPayment(event) {
     event.preventDefault();
     setIsInitializingPayment(true);
@@ -305,7 +412,7 @@ export default function Admissions() {
       if (!response.data?.authorizationUrl) throw new Error("Payment link was not returned.");
       window.location.href = response.data.authorizationUrl;
     } catch (err) {
-      toast.error(err.response?.data?.message || err.message || "Unable to start payment. Please try again.");
+      toast.error(customerPaymentErrorMessage(err, "Unable to start payment. Please try again."));
     } finally {
       setIsInitializingPayment(false);
     }
@@ -313,14 +420,31 @@ export default function Admissions() {
 
   async function submitApplication(event) {
     event.preventDefault();
+    if (!canAccessApplicationForm) {
+      setShowApplicationForm(false);
+      setShowPaymentForm(paymentRequired);
+      toast.error("Please complete payment before accessing the application form.");
+      window.requestAnimationFrame(() => paymentRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }));
+      return;
+    }
+
+    const uploadedDocuments = documentEntries(documentFiles);
+    if (uploadedDocuments.length > MAX_ADMISSION_DOCUMENTS) {
+      toast.error(`Upload up to ${MAX_ADMISSION_DOCUMENTS} documents.`);
+      return;
+    }
+
     setIsSubmitting(true);
     setSubmittedApplication(null);
 
     try {
-      const response = await http.post("/admission-applications", {
-        paymentReference,
-        formData: serializeApplicationForm(event.currentTarget)
-      });
+      const payload = new FormData();
+      if (paymentReference) payload.append("paymentReference", paymentReference);
+      payload.append("formData", JSON.stringify(serializeApplicationForm(event.currentTarget)));
+      payload.append("documentLabels", JSON.stringify(uploadedDocuments.map(({ label }) => label)));
+      uploadedDocuments.forEach(({ file }) => payload.append("documents", file));
+
+      const response = await http.post("/admission-applications", payload);
       setSubmittedApplication(response.data);
       toast.success("Application submitted successfully");
     } catch (err) {
@@ -421,7 +545,7 @@ export default function Admissions() {
           </form>
         )}
 
-        {showApplicationForm && <form id="admissions-application-form" ref={formRef} className="card mx-auto max-w-5xl overflow-hidden border-slate-300 bg-white print:max-w-none print:overflow-visible print:rounded-none print:border-0 print:shadow-none" onSubmit={submitApplication}>
+        {shouldShowApplicationForm && <form id="admissions-application-form" ref={formRef} className="card mx-auto max-w-5xl overflow-hidden border-slate-300 bg-white print:max-w-none print:overflow-visible print:rounded-none print:border-0 print:shadow-none" onSubmit={submitApplication}>
           <div className="flex flex-col gap-4 border-b border-slate-200 bg-white px-5 py-6 sm:px-8 print:border-slate-300 print:px-0 print:py-0 print:pb-4">
             <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
               <div className="flex items-center gap-4">
@@ -432,7 +556,7 @@ export default function Admissions() {
                 </div>
               </div>
               <div className="flex gap-2 print:hidden">
-                <button className="btn-secondary" type="reset" onClick={() => setSubmittedApplication(null)}>
+                <button className="btn-secondary" type="reset" onClick={resetApplicationForm}>
                   <RotateCcw size={18} />
                   Clear
                 </button>
@@ -518,6 +642,7 @@ export default function Admissions() {
               ))}
               <TextField label="Other" name="otherDocument" />
             </div>
+            <DocumentUploadGroup documentFiles={documentFiles} onRemove={removeDocumentFile} onSelect={selectDocumentFiles} />
           </Section>
 
           <Section letter="G" title="Parent/Guardian Declaration">

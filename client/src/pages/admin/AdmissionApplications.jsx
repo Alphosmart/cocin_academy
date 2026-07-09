@@ -1,4 +1,4 @@
-import { Download, Eye, Trash2 } from "lucide-react";
+import { Download, ExternalLink, Eye, Paperclip, Trash2 } from "lucide-react";
 import { useState } from "react";
 import toast from "react-hot-toast";
 import http from "../../api/http";
@@ -125,6 +125,12 @@ function formatFee(amount, currency = "NGN") {
   }).format(Number(amount));
 }
 
+function formatFileSize(bytes = 0) {
+  if (!bytes) return "";
+  if (bytes < 1024 * 1024) return `${Math.ceil(bytes / 1024)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
 function getFormValue(formData, key) {
   if (!formData || typeof formData !== "object") return undefined;
   if (Object.prototype.hasOwnProperty.call(formData, key)) return formData[key];
@@ -207,6 +213,7 @@ export default function AdmissionApplications() {
                 <th className="p-3">Application No.</th>
                 <th className="p-3">Class</th>
                 <th className="p-3">Payment</th>
+                <th className="p-3">Documents</th>
                 <th className="p-3">Contact</th>
                 <th className="p-3">Submitted</th>
                 <th className="p-3">Actions</th>
@@ -221,6 +228,16 @@ export default function AdmissionApplications() {
                   <td className="p-3">
                     <span className="block font-medium">{formatFee(application.feePaid, application.feeCurrency)}</span>
                     {application.paymentReference ? <span className="mt-1 block text-xs text-slate-500">{application.paymentReference}</span> : <span className="mt-1 block text-xs text-slate-400">No payment</span>}
+                  </td>
+                  <td className="p-3">
+                    {application.documents?.length ? (
+                      <span className="inline-flex items-center gap-1 rounded bg-slate-100 px-2 py-1 text-xs font-semibold text-slate-700">
+                        <Paperclip size={14} />
+                        {application.documents.length}
+                      </span>
+                    ) : (
+                      <span className="text-slate-400">None</span>
+                    )}
                   </td>
                   <td className="p-3">
                     {application.applicantEmail ? <a className="block text-slate-600 hover:text-brand" href={`mailto:${application.applicantEmail}`}>{application.applicantEmail}</a> : <span className="block text-slate-400">No email</span>}
@@ -269,6 +286,31 @@ export default function AdmissionApplications() {
           </div>
 
           <div className="mt-6 grid gap-6">
+            <div>
+              <h3 className="mb-3 text-sm font-bold uppercase tracking-wide text-brand">Uploaded Documents</h3>
+              {selectedApplication.documents?.length ? (
+                <div className="grid gap-2 md:grid-cols-2">
+                  {selectedApplication.documents.map((document, index) => (
+                    <a
+                      key={`${document.url}-${index}`}
+                      className="flex min-w-0 items-center justify-between gap-3 rounded-md border border-slate-200 bg-slate-50 p-3 text-sm transition hover:border-brand hover:bg-white"
+                      href={document.url}
+                      rel="noreferrer"
+                      target="_blank"
+                    >
+                      <span className="min-w-0">
+                        <span className="block font-semibold text-slate-900">{document.label || "Admission document"}</span>
+                        <span className="mt-1 block truncate text-xs text-slate-500">{document.originalName || document.url}</span>
+                        {document.size ? <span className="mt-1 block text-xs text-slate-400">{formatFileSize(document.size)}</span> : null}
+                      </span>
+                      <ExternalLink className="shrink-0 text-slate-500" size={16} />
+                    </a>
+                  ))}
+                </div>
+              ) : (
+                <p className="rounded-md border border-slate-200 bg-slate-50 p-3 text-sm text-slate-500">No documents were uploaded with this application.</p>
+              )}
+            </div>
             {fieldGroups.map((group) => (
               <div key={group.title}>
                 <h3 className="mb-3 text-sm font-bold uppercase tracking-wide text-brand">{group.title}</h3>
