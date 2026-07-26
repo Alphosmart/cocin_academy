@@ -9,6 +9,7 @@ import { defaultSettings } from "../data/defaultContent";
 const links = [
   ["Home", "/"],
   ["About", "/about"],
+  ["Head of School", "/head-of-school"],
   ["Academics", "/academics"],
   ["Admissions", "/admissions"],
   ["Blog", "/blog"],
