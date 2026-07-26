@@ -1,4 +1,4 @@
-import { BookOpen, CheckCircle2, ChevronLeft, ChevronRight, GraduationCap, HeartHandshake, MapPin, Phone, ShieldCheck, Sparkles, Volume2, VolumeX } from "lucide-react";
+import { ArrowRight, BookOpen, CheckCircle2, ChevronLeft, ChevronRight, GraduationCap, HeartHandshake, MapPin, Phone, ShieldCheck, Sparkles, UserRound, Volume2, VolumeX } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useOutletContext } from "react-router-dom";
 import http from "../../api/http";
@@ -8,6 +8,7 @@ import ErrorMessage from "../../components/public/ErrorMessage";
 import SectionTitle from "../../components/public/SectionTitle";
 import { BlogCard, EventCard, GalleryCard, TestimonialCard } from "../../components/public/Cards";
 import ContactForm from "../../components/public/ContactForm";
+import RichContent from "../../components/public/RichContent";
 import { setSeo } from "../../utils/seo";
 import { getEmbedUrl, getMediaType } from "../../utils/media";
 import {
@@ -84,6 +85,10 @@ const schoolEvents = ["Yearly inter-house sports week", "Cultural Christmas prog
 const IMAGE_SLIDE_MS = 8000;
 const VIDEO_FALLBACK_MS = 45000;
 
+function stripHtml(value) {
+  return String(value || "").replace(/<[^>]*>/g, "").trim();
+}
+
 function normalizeHeroSlide(slide = {}) {
   const media = slide.media || slide.video || slide.image || "";
   const mediaType = getMediaType(media, slide.mediaType || (slide.video ? "video" : "image"));
@@ -101,6 +106,13 @@ export default function Home() {
   const events = useApi(() => http.get("/events"), [], { fallbackData: defaultEvents, cacheKey: "events" });
   const testimonials = useApi(() => http.get("/testimonials?active=true"), [], { fallbackData: defaultTestimonials, cacheKey: "testimonials" });
   const academics = useApi(() => http.get("/academics?active=true"), [], { fallbackData: defaultAcademics, cacheKey: "academics" });
+  const headOfSchoolApi = useApi(() => http.get("/pages/head-of-school-welcome"), [], { cacheKey: "head-of-school-welcome" });
+  // Only surface the leadership block once an admin has actually written something;
+  // the API auto-creates an empty document for this slug on first request.
+  const headOfSchool = {
+    data: headOfSchoolApi.data || {},
+    hasContent: Boolean(headOfSchoolApi.data?.principalName || headOfSchoolApi.data?.principalImage || stripHtml(headOfSchoolApi.data?.content))
+  };
 
   const data = home.data || defaultHomepage;
   const heroSlides = useMemo(() => {
@@ -267,6 +279,32 @@ export default function Home() {
           ))}
         </div>
       </section>
+      {headOfSchool.hasContent && (
+        <section className="bg-white py-16">
+          <div className="container-pad grid items-center gap-10 lg:grid-cols-[minmax(0,1fr)_1.4fr]">
+            <div className="mx-auto w-full max-w-sm">
+              {headOfSchool.data.principalImage ? (
+                <img src={headOfSchool.data.principalImage} alt={headOfSchool.data.principalName || "Head of School"} className="w-full rounded-lg object-cover shadow-sm" />
+              ) : (
+                <div className="grid aspect-[4/5] w-full place-items-center rounded-lg bg-slate-100 text-slate-400"><UserRound size={64} /></div>
+              )}
+            </div>
+            <div>
+              <SectionTitle eyebrow="Leadership" title={headOfSchool.data.title || "Head of School Welcome"} />
+              {headOfSchool.data.principalName && (
+                <p className="text-lg font-bold text-slate-950">{headOfSchool.data.principalName}</p>
+              )}
+              {headOfSchool.data.principalQualification && (
+                <p className="mt-1 text-sm text-slate-600">{headOfSchool.data.principalQualification}</p>
+              )}
+              {headOfSchool.data.content && (
+                <RichContent className="prose mt-4 max-w-none text-slate-600" html={headOfSchool.data.content} />
+              )}
+              <Link className="btn-secondary mt-6" to="/head-of-school">Read the full welcome <ArrowRight size={18} /></Link>
+            </div>
+          </div>
+        </section>
+      )}
       <section className="bg-white py-16" id="faith">
         <div className="container-pad grid gap-8 lg:grid-cols-2">
           <div className="rounded-lg bg-brand p-8 text-white">
