@@ -40,6 +40,12 @@ body {
   @apply rounded-lg border border-slate-200 bg-white shadow-sm;
 }
 
+/* Links inside admin-authored content, including ones outside a .prose block. */
+.rich-content a {
+  @apply font-medium text-brand underline underline-offset-2 hover:text-accent;
+  overflow-wrap: anywhere;
+}
+
 /* Slow "Ken Burns" zoom for hero carousel images. Keyed per slide so it
    restarts from the start each time the image changes. */
 @keyframes heroZoom {

@@ -15,6 +15,7 @@ export const defaultSettings = {
   phone: "07046272361, 09018690022, 08180705629",
   whatsapp: "+2347046272361",
   address: "900241 Cadastral Street, Plot 5/7 Durumi District, Area 1, F.C.T. Abuja",
+  portalUrl: "",
   facebookUrl: "https://www.facebook.com/cocinacademyabuja1",
   instagramUrl: "https://www.instagram.com/cocinacademy/",
   youtubeUrl: "",

@@ -5,7 +5,7 @@ const { cloudinary, configured } = require("../config/cloudinary");
 const uploadsDir = path.join(__dirname, "..", "..", "uploads");
 
 // Fields across the models that hold an uploaded media URL.
-const MEDIA_FIELDS = ["image", "featuredImage", "media", "logo", "favicon", "photo"];
+const MEDIA_FIELDS = ["image", "featuredImage", "media", "logo", "favicon", "photo", "url"];
 
 function isString(value) {
   return typeof value === "string" && value.trim().length > 0;

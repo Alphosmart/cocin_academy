@@ -85,7 +85,8 @@ export function useApi(loader, deps = [], options = {}) {
     } finally {
       setLoading(false);
     }
-  }, deps);
+    // All call sites pass module-level constants as fallbackData, so these are stable.
+  }, [cacheKey, fallbackData, retryDelayMs, retryOnError, ...deps]);
 
   useEffect(() => {
     load();

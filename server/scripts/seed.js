@@ -16,7 +16,31 @@ const FAQ = require("../src/models/FAQ");
 
 const placeholder = (text) => `https://placehold.co/1200x800/302F62/ffffff?text=${encodeURIComponent(text)}`;
 
+// This script DELETES every content collection before inserting defaults. Run against
+// a remote/production database only when you have deliberately chosen to wipe it.
+function assertSafeTarget() {
+  const uri = process.env.MONGO_URI || "";
+  const isLocal = /(^|@|\/\/)(localhost|127\.0\.0\.1|\[::1\])(:|\/)/.test(uri);
+  if (isLocal || process.env.SEED_ALLOW_REMOTE === "yes") return;
+
+  const host = uri.match(/^mongodb(?:\+srv)?:\/\/(?:[^@]*@)?([^/?]+)/)?.[1] || "(unparsed)";
+  console.error(`
+REFUSING TO SEED: MONGO_URI does not point at a local database.
+
+  target host : ${host}
+
+Seeding deletes all users, settings, homepage, pages, blog posts, gallery items,
+events, staff, testimonials, academic programs, admissions content, and FAQs.
+
+If you really intend to wipe that database, re-run with:
+
+  SEED_ALLOW_REMOTE=yes npm run seed
+`);
+  process.exit(1);
+}
+
 async function seed() {
+  assertSafeTarget();
   await connectDB();
 
   await Promise.all([

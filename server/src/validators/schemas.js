@@ -187,6 +187,7 @@ const settingsSchema = z.object({
     phone: z.string().max(100).optional(),
     whatsapp: z.string().max(20).optional(),
     address: z.string().max(500).optional(),
+    portalUrl: urlField,
     facebookUrl: urlField,
     instagramUrl: urlField,
     youtubeUrl: urlField,

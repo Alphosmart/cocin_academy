@@ -12,6 +12,7 @@ export const settingsFields = [
   { name: "phone", label: "Phone" },
   { name: "whatsapp", label: "WhatsApp" },
   { name: "address", label: "Address", type: "textarea" },
+  { name: "portalUrl", label: "Parent/student portal link", description: "The address of your result-checking or school portal. Leave empty to hide the Check Result button." },
   { name: "facebookUrl", label: "Facebook link" },
   { name: "instagramUrl", label: "Instagram link" },
   { name: "youtubeUrl", label: "YouTube link" },
@@ -31,12 +32,16 @@ export const homepageFields = [
     name: "heroSlides",
     label: "Homepage slideshow",
     type: "repeatable",
+    reorderable: true,
     group: "Homepage Slideshow",
+    description: "Drag a slide, or use the arrows and position box, to change the order visitors see them in.",
     fields: [
       { name: "isActive", label: "Show this slide", type: "checkbox", defaultValue: true },
       { name: "title", label: "Heading" },
       { name: "subtitle", label: "Text", type: "textarea" },
-      { name: "media", label: "Image or video", type: "media", mediaTypeField: "mediaType", description: mediaHelp }
+      { name: "media", label: "Image or video", type: "media", mediaTypeField: "mediaType", description: mediaHelp },
+      { name: "ctaLabel", label: "Button label" },
+      { name: "ctaLink", label: "Button link" }
     ]
   },
   { name: "aboutPreview", label: "About preview", type: "textarea", group: "About Preview" },
@@ -91,6 +96,7 @@ export function GalleryManager() { return <ResourceManager title="Gallery" intro
 export function EventManager() { return <ResourceManager title="Events" intro="Add upcoming events with a date, time, and location. Fill in the form and click Create. Events appear in the list below and on the public Events page." endpoint="/events" fields={eventFields} columns={["title", "date", "location"]} />; }
 export function AcademicManager() { return <ResourceManager title="Academics" intro="List the academic programmes or classes your school offers. Fill in the form and click Create. Untick 'Show on website' to hide one without deleting it." endpoint="/academics" fields={academicFields} columns={["title", "level", "isActive"]} />; }
 export function AdmissionsManager() { return <ResourceManager title="Admissions" intro="The content of your public Admissions page — requirements, steps to apply, and a closing message. Use Admission Payment in the sidebar to require payment and set the application fee." endpoint="/admissions" fields={admissionFields} singleton />; }
+export function HeadOfSchoolManager() { return <ResourceManager title="Head of School Welcome" intro="Edit the leadership welcome page: page title, Head of School name and qualification, photo, the welcome message itself, and the search preview." endpoint="/pages/head-of-school-welcome" fields={headOfSchoolFields} singleton />; }
 export function StaffManager() { return <ResourceManager title="Staff" intro="Add teachers and staff members with their photo and role. Fill in the form and click Create. Untick 'Show on website' to hide someone without deleting them. Use Reorder to change the order they appear in." endpoint="/staff" fields={staffFields} columns={["name", "role", "isActive"]} />; }
 export function TestimonialManager() { return <ResourceManager title="Testimonials" intro="Add quotes from parents or students. Fill in the form and click Create. Untick 'Show on website' to hide one without deleting it." endpoint="/testimonials" fields={testimonialFields} columns={["name", "role", "isActive"]} />; }
 export function FAQManager() { return <ResourceManager title="FAQ" intro="Add frequently asked questions and their answers. Fill in the form and click Create. Use Reorder to change the order they appear in on the public FAQ page." endpoint="/faqs" fields={faqFields} columns={["question", "category", "isActive"]} />; }
@@ -98,7 +104,6 @@ export function PageManager() {
   return (
     <div className="grid gap-8">
       <ResourceManager title="About Page" intro="The content of your public About page. Edit the boxes and click Save changes to update it." endpoint="/pages/about" fields={pageFields} singleton />
-      <ResourceManager title="Head of School" intro="The welcome message and photo shown on your public Head of School page. Fill in the boxes and click Save changes." endpoint="/pages/head-of-school-welcome" fields={headOfSchoolFields} singleton />
       <ResourceManager title="Privacy Policy" intro="The content of your public Privacy Policy page. Edit the boxes and click Save changes to update it." endpoint="/pages/privacy-policy" fields={pageFields.filter((field) => !["mission", "vision", "coreValues"].includes(field.name))} singleton />
     </div>
   );

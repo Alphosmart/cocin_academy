@@ -16,6 +16,7 @@ import SingleEvent from "./pages/public/SingleEvent";
 import Staff from "./pages/public/Staff";
 import FAQ from "./pages/public/FAQ";
 import Contact from "./pages/public/Contact";
+import Portal from "./pages/public/Portal";
 import NotFound from "./pages/public/NotFound";
 import Login from "./pages/admin/Login";
 import Dashboard from "./pages/admin/Dashboard";
@@ -34,6 +35,7 @@ import {
   EventManager,
   FAQManager,
   GalleryManager,
+  HeadOfSchoolManager,
   HomepageManager,
   SettingsManager,
   StaffManager,
@@ -60,6 +62,7 @@ export default function App() {
         <Route path="events/:slug" element={<SingleEvent />} />
         <Route path="staff" element={<Staff />} />
         <Route path="faq" element={<FAQ />} />
+        <Route path="portal" element={<Portal />} />
         <Route path="contact" element={<Contact />} />
         <Route path="privacy-policy" element={<SimplePage slug="privacy-policy" />} />
       </Route>
@@ -70,6 +73,7 @@ export default function App() {
           <Route path="settings" element={<SettingsManager />} />
           <Route path="homepage" element={<HomepageManager />} />
           <Route path="pages" element={<PageManager />} />
+          <Route path="head-of-school" element={<HeadOfSchoolManager />} />
           <Route path="blog" element={<BlogManager />} />
           <Route path="gallery" element={<GalleryManager />} />
           <Route path="events" element={<EventManager />} />

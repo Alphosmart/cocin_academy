@@ -6,6 +6,7 @@ const Event = require("../models/Event");
 const GalleryItem = require("../models/GalleryItem");
 const StaffMember = require("../models/StaffMember");
 const ContactMessage = require("../models/ContactMessage");
+const AdmissionApplication = require("../models/AdmissionApplication");
 const asyncHandler = require("../middleware/asyncHandler");
 
 const trackSchema = z.object({
@@ -35,7 +36,7 @@ exports.summary = asyncHandler(async (req, res) => {
   const since30 = daysAgo(30);
   const since7 = daysAgo(7);
 
-  const [totalViews, views7, views30, topPages, dailySeries, contentCounts, unreadMessages, recentActivity] = await Promise.all([
+  const [totalViews, views7, views30, topPages, dailySeries, contentCounts, unreadMessages, unreadApplications, recentActivity] = await Promise.all([
     PageView.countDocuments(),
     PageView.countDocuments({ createdAt: { $gte: since7 } }),
     PageView.countDocuments({ createdAt: { $gte: since30 } }),
@@ -56,6 +57,7 @@ exports.summary = asyncHandler(async (req, res) => {
       StaffMember.countDocuments()
     ]),
     ContactMessage.countDocuments({ isRead: false }),
+    AdmissionApplication.countDocuments({ isRead: false }),
     AuditLog.find().sort("-createdAt").limit(10)
   ]);
 
@@ -70,6 +72,7 @@ exports.summary = asyncHandler(async (req, res) => {
       staff: contentCounts[3]
     },
     unreadMessages,
+    unreadApplications,
     recentActivity
   });
 });

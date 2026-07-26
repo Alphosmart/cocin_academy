@@ -1,4 +1,4 @@
-import { Activity, BookOpen, Calendar, ClipboardList, CreditCard, ExternalLink, FileText, FolderOpen, HelpCircle, Home, Images, LayoutDashboard, LogOut, MessageSquare, Quote, Settings, Shield, Users } from "lucide-react";
+import { Activity, BookOpen, Calendar, ClipboardList, CreditCard, ExternalLink, FileText, FolderOpen, HelpCircle, Home, Images, LayoutDashboard, LogOut, MessageSquare, Quote, Settings, Shield, UserRound, Users } from "lucide-react";
 import { NavLink } from "react-router-dom";
 
 const nav = [
@@ -6,6 +6,7 @@ const nav = [
   ["Settings", "/admin/settings", Settings],
   ["Homepage", "/admin/homepage", Home],
   ["Pages", "/admin/pages", FileText],
+  ["Head of School", "/admin/head-of-school", UserRound],
   ["Blog", "/admin/blog", FileText],
   ["Gallery", "/admin/gallery", Images],
   ["Events", "/admin/events", Calendar],

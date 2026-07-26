@@ -4,3 +4,6 @@ dist
 .history
 *.log
 server/uploads
+
+# Local recovery data (contains personal email addresses)
+server/scripts/restore-accounts.json
