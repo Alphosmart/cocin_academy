@@ -26,7 +26,8 @@ const admissionApplicationSchema = new mongoose.Schema(
         size: Number,
         uploadedAt: { type: Date, default: Date.now }
       }
-    ]
+    ],
+    isRead: { type: Boolean, default: false }
   },
   {
     timestamps: true

@@ -17,6 +17,7 @@ router.post("/", admissionApplicationLimiter, admissionDocumentUpload.array("doc
 router.get("/", protect, adminOnly, ctrl.listApplications);
 router.get("/:id/download", protect, adminOnly, ctrl.downloadApplication);
 router.get("/:id", protect, adminOnly, ctrl.getApplication);
+router.put("/:id/read", adminRateLimit, protect, adminOnly, ctrl.markRead);
 router.delete("/:id", adminRateLimit, protect, adminOnly, ctrl.deleteApplication);
 
 module.exports = router;

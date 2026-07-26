@@ -12,6 +12,7 @@ const siteSettingsSchema = new mongoose.Schema(
     phone: { type: String, default: "07046272361, 09018690022, 08180705629" },
     whatsapp: { type: String, default: "+2347046272361" },
     address: { type: String, default: "900241 Cadastral Street, Plot 5/7 Durumi District, Area 1, F.C.T. Abuja" },
+    portalUrl: String,
     facebookUrl: String,
     instagramUrl: String,
     youtubeUrl: String,

@@ -445,6 +445,12 @@ exports.getApplication = asyncHandler(async (req, res) => {
   res.json(application);
 });
 
+exports.markRead = asyncHandler(async (req, res) => {
+  const application = await AdmissionApplication.findByIdAndUpdate(req.params.id, { isRead: true }, { new: true });
+  if (!application) return res.status(404).json({ message: "Application not found" });
+  res.json(application);
+});
+
 exports.downloadApplication = asyncHandler(async (req, res) => {
   const application = await AdmissionApplication.findById(req.params.id);
   if (!application) return res.status(404).json({ message: "Application not found" });

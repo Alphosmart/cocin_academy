@@ -3,6 +3,7 @@ import http from "../../api/http";
 import toast from "react-hot-toast";
 import MediaPreview from "../MediaPreview";
 import { detectMediaType } from "../../utils/media";
+import { normalizeHref } from "../../utils/richText";
 
 function Hint({ children }) {
   return children ? <p className="mb-2 text-xs leading-5 text-slate-500">{children}</p> : null;
@@ -38,21 +39,40 @@ export function RichTextEditor({ label, description, value, onChange }) {
     onChange(nextValue);
   }
 
-  function command(name) {
+  function command(name, argument = null) {
     ref.current?.focus();
-    document.execCommand(name, false, null);
+    document.execCommand(name, false, argument);
     emit(ref.current?.innerHTML || "");
+  }
+
+  function addLink() {
+    const editor = ref.current;
+    editor?.focus();
+    const selection = window.getSelection();
+    const selectedText = selection?.toString().trim();
+    if (!selectedText) {
+      toast.error("Select the words you want to link first.");
+      return;
+    }
+    const entered = window.prompt("Link address (a web address, email, or phone number):", "https://");
+    if (entered === null) return;
+    const href = normalizeHref(entered);
+    if (!href) return;
+    command("createLink", href);
   }
 
   return (
     <div>
       <span className="label">{label}</span>
       <Hint>{description}</Hint>
-      <div className="mb-2 flex gap-2">
+      <div className="mb-2 flex flex-wrap gap-2">
         <button type="button" className="btn-secondary px-3 py-1" onClick={() => command("bold")}>B</button>
         <button type="button" className="btn-secondary px-3 py-1 italic" onClick={() => command("italic")}>I</button>
         <button type="button" className="btn-secondary px-3 py-1" onClick={() => command("insertUnorderedList")}>List</button>
+        <button type="button" className="btn-secondary px-3 py-1" onClick={addLink}>Link</button>
+        <button type="button" className="btn-secondary px-3 py-1" onClick={() => command("unlink")}>Unlink</button>
       </div>
+      <Hint>Select words and click Link to turn them into a link. Web addresses typed on their own become clickable automatically.</Hint>
       <div
         ref={ref}
         className="min-h-40 rounded-md border border-slate-300 bg-white p-3 text-sm outline-none focus:border-brand focus:ring-2 focus:ring-schoolLime/40"

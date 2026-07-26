@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowRight, BarChart3, BookOpen, Calendar, ExternalLink, Eye, FileText, Home, Images, Mail, Users } from "lucide-react";
+import { ArrowRight, BarChart3, BookOpen, Calendar, ClipboardList, ExternalLink, Eye, FileText, Home, Images, Mail, UserRound, Users } from "lucide-react";
 import http from "../../api/http";
 import StatCard from "../../components/admin/StatCard";
 
 const gettingStarted = [
   ["Edit your homepage", "/admin/homepage", Home],
+  ["Edit Head of School welcome", "/admin/head-of-school", UserRound],
   ["Add a blog post or news", "/admin/blog", FileText],
   ["Add photos to the gallery", "/admin/gallery", Images],
   ["Update school settings", "/admin/settings", Users]
@@ -53,6 +54,7 @@ export default function Dashboard() {
         <StatCard label="Views (7d)" value={summary?.views?.last7 ?? "—"} icon={BarChart3} />
         <StatCard label="Blog posts" value={summary?.content?.blogs ?? "—"} icon={FileText} />
         <StatCard label="Unread messages" value={summary?.unreadMessages ?? "—"} icon={Mail} />
+        <StatCard label="New applications" value={summary?.unreadApplications ?? "—"} icon={ClipboardList} />
         <StatCard label="Events" value={summary?.content?.events ?? "—"} icon={Calendar} />
         <StatCard label="Gallery items" value={summary?.content?.gallery ?? "—"} icon={Images} />
         <StatCard label="Staff" value={summary?.content?.staff ?? "—"} icon={Users} />

@@ -6,6 +6,7 @@ import http from "../../api/http";
 import { useApi } from "../../hooks/useApi";
 import Loader from "../../components/public/Loader";
 import ErrorMessage from "../../components/public/ErrorMessage";
+import RichContent from "../../components/public/RichContent";
 import { defaultAdmissions } from "../../data/defaultContent";
 
 const pupilFields = [
@@ -466,7 +467,7 @@ export default function Admissions() {
           <div>
             <p className="text-sm font-bold text-accent">Admissions</p>
             <h1 className="mt-2 text-4xl font-black text-slate-950">{data.title}</h1>
-            <article className="prose mt-5 max-w-none" dangerouslySetInnerHTML={{ __html: data.content }} />
+            <RichContent as="article" className="prose mt-5 max-w-none" html={data.content} />
             <button
               aria-controls="admissions-application-form"
               aria-expanded={showApplicationForm}

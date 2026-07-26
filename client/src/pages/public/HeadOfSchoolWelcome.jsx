@@ -2,6 +2,7 @@ import http from "../../api/http";
 import { useApi } from "../../hooks/useApi";
 import Loader from "../../components/public/Loader";
 import ErrorMessage from "../../components/public/ErrorMessage";
+import RichContent from "../../components/public/RichContent";
 import { setSeo } from "../../utils/seo";
 
 export default function HeadOfSchoolWelcome() {
@@ -49,7 +50,7 @@ export default function HeadOfSchoolWelcome() {
         <div className="md:col-span-2">
           <div className="prose max-w-none">
             {data.content && (
-              <div dangerouslySetInnerHTML={{ __html: data.content }} />
+              <RichContent html={data.content} />
             )}
           </div>
         </div>

@@ -42,7 +42,10 @@ The **Overview** page shows quick counts for major content areas:
 - Events
 - Staff
 - Contact messages
+- New admission applications
 - Academic programs
+
+**New applications** counts admission forms nobody has opened yet. The count drops as you view each form under **Admission Forms**.
 
 Use this page as a quick health check for the website content.
 
@@ -53,11 +56,14 @@ Use **Settings** to manage global website information:
 - School name and motto
 - Logo
 - Email, phone, WhatsApp, and address
+- Parent/student portal link
 - Social media links
 - Footer text
 - Search preview fields
 
 These values appear across the public website, especially in the header, footer, contact page, and search previews.
+
+The **Parent/student portal link** is the address of your result-checking or school portal. When it is filled in, a **Check Result** button appears in the website header and the `/portal` page links to it. Leave it empty to hide that button.
 
 ## Homepage
 
@@ -71,7 +77,7 @@ Use **Homepage** to control the public home page:
 - Admissions call-to-action
 - Search preview fields
 
-For carousel slides, click **Add** to create each slide. Each slide can have a heading, text, and media file or URL. YouTube and Vimeo links are supported in slideshow media fields.
+For carousel slides, click **Add** to create each slide. Each slide can have a heading, text, media file or URL, a button label, and a button link. YouTube and Vimeo links are supported in slideshow media fields. If you leave the button fields empty, the slide shows the default Admissions button.
 
 If the hero media is a video or YouTube/Vimeo link, the homepage uses it as the hero background. You can upload a local video file from the admin dashboard or paste a direct video URL.
 
@@ -83,6 +89,14 @@ Carousel slides can be managed individually:
 - Use **Remove media** to clear the image or video from a slide.
 - Use **Remove item** to delete a slide from the carousel.
 
+To change the order slides appear in, use any of these:
+
+- Drag a collapsed slide up or down by its handle.
+- Click the up and down arrow buttons on a slide.
+- Pick a position number (`#1`, `#2`, and so on) from the small box beside the arrows.
+
+Click **Save changes** after reordering.
+
 ## Pages
 
 Use **Pages** to edit static website pages:
@@ -92,9 +106,26 @@ Use **Pages** to edit static website pages:
 
 The About page includes content, mission, vision, and core values. The Privacy Policy uses simpler page content fields.
 
-Rich text fields support basic formatting such as bold, italic, and lists.
+Rich text fields support basic formatting such as bold, italic, lists, and links.
+
+To add a link, select the words you want to link and click **Link**, then enter the address. You can enter a web address, an email address, or a phone number. Click **Unlink** to remove a link from selected words.
+
+You do not have to link web addresses by hand. Any address typed on its own inside content, along with email addresses, becomes clickable automatically on the public website. Links to other websites open in a new tab.
 
 The search preview fields help control how these pages appear in search results.
+
+## Head of School
+
+Use **Head of School** to edit the public leadership welcome page:
+
+- Page title
+- Head of School name
+- Qualification or title
+- Photo
+- Welcome message
+- Search preview fields
+
+The welcome message is a rich text field, so you can use bold, italics, and lists inside the address. Click **Save changes** to publish it.
 
 ## Blog
 
@@ -125,6 +156,8 @@ Fields:
 - Featured
 
 Use **Featured** for images that should receive extra attention where the design supports featured content.
+
+**Category** also drives the filter box on the public gallery page. Visitors see 24 photos at a time with a **Load more** button, and clicking a photo opens a full-size viewer they can move through with the on-screen arrows or the left and right arrow keys.
 
 ## Events
 
@@ -169,6 +202,18 @@ Fields:
 - Search preview fields
 
 Enter requirements one per line. For process steps, click **Add** and enter the step title and description.
+
+Use **Admission Payment** in the sidebar to require payment and set the application fee.
+
+## Admission Forms
+
+Use **Admission Forms** to review applications submitted from the public Admissions page.
+
+Each row shows the applicant, application number, class, payment, uploaded documents, contact details, and submission time. Applications nobody has opened yet carry a **New** badge, and the same count appears as **New applications** on the Overview page.
+
+- Click **View** to open the full form below the table. This also clears the **New** badge.
+- Click **Download** to save a copy of the form.
+- Click **Delete** to remove an application permanently.
 
 ## Staff
 

@@ -19,15 +19,47 @@ const links = [
   ["Contact", "/contact"]
 ];
 
+// A logo saved while developing locally points at localhost, which resolves to
+// nothing for a visitor on the deployed site. Fall back to the bundled asset.
+function isUnreachableMediaUrl(url) {
+  if (!url) return true;
+  if (url.startsWith("data:") || url.startsWith("blob:")) return false;
+  if (typeof window !== "undefined") {
+    try {
+      const parsedUrl = new URL(url, window.location.origin);
+      if (["localhost", "127.0.0.1", "::1"].includes(parsedUrl.hostname)) return window.location.hostname !== parsedUrl.hostname;
+    } catch {
+      return true;
+    }
+  }
+  return false;
+}
+
+function safeMediaUrl(url, fallback) {
+  return isUnreachableMediaUrl(url) ? fallback : url;
+}
+
+function toWhatsAppNumber(value) {
+  const digits = value?.replace(/[^\d]/g, "") || "";
+  if (!digits) return "";
+  if (digits.startsWith("234")) return digits;
+  if (digits.startsWith("0")) return `234${digits.slice(1)}`;
+  return digits;
+}
+
 export default function PublicLayout() {
   usePageView();
   const [open, setOpen] = useState(false);
   const { data: settings } = useApi(() => http.get("/settings"), [], { fallbackData: defaultSettings, cacheKey: "settings" });
-  const whatsapp = settings?.whatsapp?.replace(/[^\d]/g, "");
+  const whatsapp = toWhatsAppNumber(settings?.whatsapp);
+  const fallbackLogo = defaultSettings.logo;
+  const logoSrc = safeMediaUrl(settings?.logo, fallbackLogo);
+  const portalUrl = settings?.portalUrl || defaultSettings.portalUrl;
 
   useEffect(() => {
-    const href = settings?.favicon || settings?.logo;
-    if (!href) return;
+    const fallbackIcon = defaultSettings.favicon || fallbackLogo;
+    const href = safeMediaUrl(settings?.favicon || settings?.logo, fallbackIcon);
+    if (!href) return undefined;
     let link = document.querySelector("link[rel='icon']");
     if (!link) {
       link = document.createElement("link");
@@ -35,23 +67,48 @@ export default function PublicLayout() {
       document.head.appendChild(link);
     }
     link.href = href;
-  }, [settings?.favicon, settings?.logo]);
+    if (href === fallbackIcon) return undefined;
+
+    let cancelled = false;
+    const img = new Image();
+    img.onerror = () => {
+      if (!cancelled) link.href = fallbackIcon;
+    };
+    img.src = href;
+    return () => {
+      cancelled = true;
+    };
+  }, [fallbackLogo, settings?.favicon, settings?.logo]);
 
   return (
     <div className="min-h-screen bg-slate-50">
       <header className="sticky top-0 z-40 border-b border-slate-200 bg-white/95 backdrop-blur print:hidden">
         <div className="container-pad flex h-20 items-center justify-between">
-          <Link to="/" className="flex items-center gap-3">
-            {settings?.logo ? <img src={settings.logo} alt="" className="h-12 w-12 rounded-md bg-white object-contain p-0.5" /> : <div className="h-11 w-11 rounded-md bg-brand" />}
-            <span className="max-w-[180px] text-lg font-bold leading-tight text-slate-950">{settings?.schoolName || "School"}</span>
+          <Link to="/" className="flex min-w-0 items-center gap-3">
+            <img
+              src={logoSrc}
+              alt=""
+              className="h-12 w-12 rounded-md bg-white object-contain p-0.5"
+              onError={(event) => {
+                if (event.currentTarget.dataset.fallbackApplied) return;
+                event.currentTarget.dataset.fallbackApplied = "true";
+                event.currentTarget.src = fallbackLogo;
+              }}
+            />
+            <span className="grid max-w-[190px] leading-tight sm:max-w-[260px] lg:max-w-[300px]">
+              <span className="text-base font-bold text-slate-950 sm:text-lg">{settings?.schoolName || "School"}</span>
+              {settings?.motto && <span className="mt-0.5 text-[10px] font-semibold uppercase tracking-wide text-brand sm:text-[11px]">{settings.motto}</span>}
+            </span>
           </Link>
           <nav className="hidden items-center gap-5 lg:flex">
+            {portalUrl && <a className="rounded-full bg-brand px-3 py-2 text-sm font-semibold text-white hover:bg-[#24234d]" href={portalUrl} target="_blank" rel="noreferrer">Check Result</a>}
             {links.map(([label, to]) => <NavLink key={to} to={to} className={({ isActive }) => `text-sm font-medium ${isActive ? "text-brand" : "text-slate-700 hover:text-brand"}`}>{label}</NavLink>)}
           </nav>
           <button className="btn-secondary lg:hidden" onClick={() => setOpen(!open)} aria-label="Toggle menu">{open ? <X size={20} /> : <Menu size={20} />}</button>
         </div>
         {open && (
           <nav className="container-pad grid gap-2 pb-5 lg:hidden">
+            {portalUrl && <a className="btn-primary" href={portalUrl} target="_blank" rel="noreferrer" onClick={() => setOpen(false)}>Check Result</a>}
             {links.map(([label, to]) => <NavLink key={to} onClick={() => setOpen(false)} to={to} className="rounded-md px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100">{label}</NavLink>)}
           </nav>
         )}

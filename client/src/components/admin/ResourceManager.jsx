@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { ArrowDown, ArrowUp, GripVertical } from "lucide-react";
 import toast from "react-hot-toast";
 import http from "../../api/http";
 import { ImageUpload, MixedMediaUpload, RichTextEditor, TextArea, TextInput, VideoUpload } from "./FormControls";
@@ -78,6 +79,7 @@ export default function ResourceManager({ title, endpoint, fields, columns = ["t
   const [dateTo, setDateTo] = useState("");
   const [selectedIds, setSelectedIds] = useState([]);
   const [reorderMode, setReorderMode] = useState(false);
+  const [repeatableDrag, setRepeatableDrag] = useState(null);
   const ITEMS_PER_PAGE = 10;
 
   const hasOrder = fields.some((field) => field.name === "order");
@@ -182,6 +184,32 @@ export default function ResourceManager({ title, endpoint, fields, columns = ["t
     }));
   }
 
+  function moveRepeatableItem(name, fromIndex, toIndex) {
+    if (fromIndex === toIndex) return;
+    setForm((current) => {
+      const next = [...(current[name] || [])];
+      if (fromIndex < 0 || toIndex < 0 || fromIndex >= next.length || toIndex >= next.length) return current;
+      const [moved] = next.splice(fromIndex, 1);
+      next.splice(toIndex, 0, moved);
+      return { ...current, [name]: next };
+    });
+    setExpandedRepeatable((current) => {
+      const activeIndex = current[name];
+      if (activeIndex === undefined || activeIndex === null) return current;
+      let nextIndex = activeIndex;
+      if (activeIndex === fromIndex) nextIndex = toIndex;
+      else if (fromIndex < activeIndex && activeIndex <= toIndex) nextIndex = activeIndex - 1;
+      else if (toIndex <= activeIndex && activeIndex < fromIndex) nextIndex = activeIndex + 1;
+      return nextIndex === activeIndex ? current : { ...current, [name]: nextIndex };
+    });
+  }
+
+  function dropRepeatableItem(name, targetIndex) {
+    if (!repeatableDrag || repeatableDrag.name !== name) return setRepeatableDrag(null);
+    moveRepeatableItem(name, repeatableDrag.index, targetIndex);
+    setRepeatableDrag(null);
+  }
+
   function buildPayload(source) {
     const payload = { ...source };
     ["tags"].forEach((key) => { if (typeof payload[key] === "string") payload[key] = payload[key].split(",").map((x) => x.trim()).filter(Boolean); });
@@ -217,6 +245,47 @@ export default function ResourceManager({ title, endpoint, fields, columns = ["t
     const detail = row.subtitle || row.description || row.message || row.media || row.image || "";
     const mediaType = detectMediaType(detail, row.mediaType);
     return { title, detail, mediaType };
+  }
+
+  function repeatableOrderControls(field, row, index, totalRows) {
+    if (!field.reorderable || totalRows < 2) return null;
+    const { title: rowTitle } = repeatableTitle(field, row, index);
+    const label = rowTitle || `${field.label} ${index + 1}`;
+    return (
+      <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+        <button
+          type="button"
+          className="grid h-9 w-9 place-items-center rounded-md border border-slate-200 bg-white text-slate-600 transition hover:border-brand hover:text-brand disabled:cursor-not-allowed disabled:opacity-40"
+          onClick={() => moveRepeatableItem(field.name, index, index - 1)}
+          disabled={index === 0}
+          aria-label={`Move ${label} up`}
+          title="Move up"
+        >
+          <ArrowUp size={16} />
+        </button>
+        <button
+          type="button"
+          className="grid h-9 w-9 place-items-center rounded-md border border-slate-200 bg-white text-slate-600 transition hover:border-brand hover:text-brand disabled:cursor-not-allowed disabled:opacity-40"
+          onClick={() => moveRepeatableItem(field.name, index, index + 1)}
+          disabled={index === totalRows - 1}
+          aria-label={`Move ${label} down`}
+          title="Move down"
+        >
+          <ArrowDown size={16} />
+        </button>
+        <select
+          className="input h-9 w-20 py-1 text-xs"
+          value={index}
+          onChange={(e) => moveRepeatableItem(field.name, index, Number(e.target.value))}
+          aria-label={`Move ${label} to position`}
+          title="Move to position"
+        >
+          {Array.from({ length: totalRows }, (_, optionIndex) => (
+            <option key={optionIndex} value={optionIndex}>#{optionIndex + 1}</option>
+          ))}
+        </select>
+      </div>
+    );
   }
 
   function edit(item) {
@@ -279,6 +348,7 @@ export default function ResourceManager({ title, endpoint, fields, columns = ["t
     if (field.type === "repeatable") {
       const savedRows = Array.isArray(value) ? value : [];
       const rows = repeatableItemHasContent(field, savedRows[savedRows.length - 1]) || savedRows.length === 0 ? [...savedRows, emptyRepeatableItem(field)] : savedRows;
+      const orderableRows = savedRows.filter((row) => repeatableItemHasContent(field, row));
       return (
         <div key={field.name} className="md:col-span-2">
           <div className="mb-2 flex items-center justify-between gap-3">
@@ -287,11 +357,28 @@ export default function ResourceManager({ title, endpoint, fields, columns = ["t
           </div>
           <FieldHint>{field.description}</FieldHint>
           <div className="grid gap-3">
-            {rows.map((row, index) => (
-              <div className="rounded-md border border-slate-200 bg-slate-50 p-3" key={`${field.name}-${index}`}>
-                {repeatableItemHasContent(field, row) && expandedRepeatable[field.name] !== index ? (
+            {rows.map((row, index) => {
+              const rowHasContent = repeatableItemHasContent(field, row);
+              const canMoveRow = field.reorderable && rowHasContent && index < orderableRows.length && orderableRows.length > 1;
+              const isDragged = repeatableDrag?.name === field.name && repeatableDrag.index === index;
+              return (
+              <div
+                className={`rounded-md border border-slate-200 bg-slate-50 p-3 ${canMoveRow ? "transition hover:border-brand/40" : ""} ${isDragged ? "opacity-50" : ""}`}
+                key={`${field.name}-${row._id || index}`}
+                draggable={canMoveRow}
+                onDragStart={canMoveRow ? () => setRepeatableDrag({ name: field.name, index }) : undefined}
+                onDragOver={canMoveRow ? (e) => e.preventDefault() : undefined}
+                onDrop={canMoveRow ? () => dropRepeatableItem(field.name, index) : undefined}
+                onDragEnd={canMoveRow ? () => setRepeatableDrag(null) : undefined}
+              >
+                {rowHasContent && expandedRepeatable[field.name] !== index ? (
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                     <div className="flex min-w-0 items-start gap-3">
+                      {canMoveRow && (
+                        <span className="mt-5 shrink-0 cursor-grab text-slate-400" title="Drag to reorder" aria-hidden="true">
+                          <GripVertical size={16} />
+                        </span>
+                      )}
                       {(row.media || row.image) && (
                         <div className="shrink-0">
                           <MediaPreview value={row.media || row.image} mediaType={repeatableTitle(field, row, index).mediaType} className="h-16 w-16 rounded object-cover" title={`${repeatableTitle(field, row, index).title} preview`} />
@@ -307,13 +394,22 @@ export default function ResourceManager({ title, endpoint, fields, columns = ["t
                         {repeatableTitle(field, row, index).detail && <p className="mt-1 truncate text-xs text-slate-500">{repeatableTitle(field, row, index).detail}</p>}
                       </div>
                     </div>
-                    <div className="flex shrink-0 gap-3 text-sm">
+                    <div className="flex shrink-0 flex-wrap items-center justify-end gap-2 text-sm">
+                      {repeatableOrderControls(field, row, index, orderableRows.length)}
                       <button type="button" className="font-medium text-brand" onClick={() => setExpandedRepeatable((current) => ({ ...current, [field.name]: index }))}>View / Edit</button>
                       <button type="button" className="font-medium text-red-600" onClick={() => removeRepeatableItem(field.name, index)}>Remove</button>
                     </div>
                   </div>
                 ) : (
                   <>
+                    {canMoveRow && (
+                      <div className="mb-3 flex flex-wrap items-center justify-end gap-2">
+                        <span className="mr-auto inline-flex items-center text-slate-400" title="Drag to reorder" aria-hidden="true">
+                          <GripVertical size={16} />
+                        </span>
+                        {repeatableOrderControls(field, row, index, orderableRows.length)}
+                      </div>
+                    )}
                     <div className="grid gap-3 md:grid-cols-2">
                       {field.fields.map((item) => {
                         const itemValue = row[item.name] || "";
@@ -368,7 +464,8 @@ export default function ResourceManager({ title, endpoint, fields, columns = ["t
                   </>
                 )}
               </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       );

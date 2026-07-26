@@ -176,6 +176,17 @@ export default function AdmissionApplications() {
     }
   }
 
+  async function openApplication(application) {
+    setSelectedApplication(application);
+    if (application.isRead) return;
+    try {
+      await http.put(`/admission-applications/${application._id}/read`);
+      reload();
+    } catch {
+      // Marking as read is a convenience; leave the badge alone if it fails.
+    }
+  }
+
   async function removeApplication() {
     if (!pendingDelete) return;
     try {
@@ -222,7 +233,10 @@ export default function AdmissionApplications() {
             <tbody>
               {data.map((application) => (
                 <tr className="border-t align-top" key={application._id}>
-                  <td className="p-3 font-medium">{application.applicantName}</td>
+                  <td className="p-3 font-medium">
+                    {application.applicantName}
+                    {!application.isRead && <span className="ml-2 rounded bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-700">New</span>}
+                  </td>
                   <td className="p-3">{application.applicationNumber}</td>
                   <td className="p-3">{application.classApplyingFor || "-"}</td>
                   <td className="p-3">
@@ -246,7 +260,7 @@ export default function AdmissionApplications() {
                   <td className="p-3">{formatDate(application.createdAt)}</td>
                   <td className="p-3">
                     <div className="flex flex-wrap gap-2">
-                      <button className="btn-secondary px-3 py-1" type="button" onClick={() => setSelectedApplication(application)}>
+                      <button className="btn-secondary px-3 py-1" type="button" onClick={() => openApplication(application)}>
                         <Eye size={16} />
                         View
                       </button>

@@ -18,7 +18,9 @@ export function BlogCard({ post }) {
 export function GalleryCard({ item, onOpen }) {
   return (
     <button onClick={() => onOpen?.(item)} className="card overflow-hidden text-left">
-      <img src={item.image} alt={item.title} className="h-56 w-full object-cover" />
+      <div className="flex h-64 w-full items-center justify-center bg-slate-100">
+        <img src={item.image} alt={item.title} className="h-full w-full object-contain" loading="lazy" />
+      </div>
       <div className="p-4">
         <h3 className="font-semibold text-slate-950">{item.title}</h3>
         <p className="text-sm text-slate-600">{item.category}</p>
