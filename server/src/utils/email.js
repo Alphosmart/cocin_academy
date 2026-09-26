@@ -1,6 +1,8 @@
 const nodemailer = require("nodemailer");
 
-const configured = Boolean(process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS);
+const brevoConfigured = Boolean(process.env.BREVO_API_KEY && process.env.BREVO_SENDER_EMAIL);
+const smtpConfigured = Boolean(process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS);
+const configured = brevoConfigured || smtpConfigured;
 
 let transporter = null;
 if (configured) {
@@ -19,9 +21,37 @@ async function sendEmail({ to, subject, text, html }) {
     console.info(`[email:disabled] To: ${to} | ${subject}`);
     return { delivered: false };
   }
+
+  if (brevoConfigured) {
+    const response = await fetch("https://api.brevo.com/v3/smtp/email", {
+      method: "POST",
+      headers: {
+        "api-key": process.env.BREVO_API_KEY,
+        "content-type": "application/json",
+        accept: "application/json"
+      },
+      body: JSON.stringify({
+        sender: {
+          email: process.env.BREVO_SENDER_EMAIL,
+          ...(process.env.BREVO_SENDER_NAME ? { name: process.env.BREVO_SENDER_NAME } : {})
+        },
+        to: [{ email: to }],
+        subject,
+        ...(text ? { textContent: text } : {}),
+        ...(html ? { htmlContent: html } : {})
+      })
+    });
+
+    if (!response.ok) {
+      const details = await response.text();
+      throw new Error(`Brevo email request failed (${response.status}): ${details}`);
+    }
+    return { delivered: true, provider: "brevo" };
+  }
+
   const from = process.env.SMTP_FROM || `School CMS <${process.env.SMTP_USER}>`;
   await transporter.sendMail({ from, to, subject, text, html });
-  return { delivered: true };
+  return { delivered: true, provider: "smtp" };
 }
 
 module.exports = { sendEmail, emailConfigured: configured };
