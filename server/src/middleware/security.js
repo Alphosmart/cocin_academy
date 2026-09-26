@@ -55,4 +55,12 @@ const loginRateLimit = rateLimit({
   skipSuccessfulRequests: true
 });
 
-module.exports = { adminRateLimit, loginRateLimit, noStore, requireTrustedOrigin };
+const passwordResetRateLimit = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: process.env.NODE_ENV === "production" ? 5 : 50,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { message: "Too many password requests. Please wait a few minutes and try again." }
+});
+
+module.exports = { adminRateLimit, loginRateLimit, passwordResetRateLimit, noStore, requireTrustedOrigin };

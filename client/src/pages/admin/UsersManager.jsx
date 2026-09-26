@@ -9,7 +9,6 @@ import { scrollToTop } from "../../utils/scroll";
 const initialFormState = {
   name: "",
   email: "",
-  password: "",
   isActive: true
 };
 
@@ -53,7 +52,6 @@ export default function UsersManager() {
     setForm({
       name: user.name || "",
       email: user.email || "",
-      password: "",
       isActive: user.isActive !== false
     });
     scrollToTop();
@@ -67,9 +65,6 @@ export default function UsersManager() {
         email: form.email,
         isActive: form.isActive
       };
-      if (!editing) {
-        payload.password = form.password;
-      }
 
       if (editing) {
         await http.put(`/users/${editing}`, payload);
@@ -113,7 +108,6 @@ export default function UsersManager() {
           <div className="grid gap-4 md:grid-cols-2">
             <TextInput label="Name" value={form.name} onChange={(e) => setValue("name", e.target.value)} required />
             <TextInput label="Email" type="email" value={form.email} onChange={(e) => setValue("email", e.target.value)} required />
-            {!editing && <TextInput label="Password" type="password" value={form.password} onChange={(e) => setValue("password", e.target.value)} required />}
             <label className="block">
               <span className="label">Active</span>
               <div className="mt-2 flex items-center gap-2">
@@ -122,7 +116,8 @@ export default function UsersManager() {
               </div>
             </label>
           </div>
-          {editing && <p className="mt-3 text-sm text-slate-500">Leave password blank. Password changes are managed in your own account settings.</p>}
+          {!editing && <p className="mt-3 text-sm text-slate-500">A one-time password setup link will be emailed to the new user.</p>}
+          {editing && <p className="mt-3 text-sm text-slate-500">Password changes are managed in the user’s own account settings.</p>}
         </div>
         <div className="flex gap-3">
           <button className="btn-primary" type="submit">{editing ? "Update user" : "Create user"}</button>

@@ -1,6 +1,13 @@
 const { z } = require("zod");
+const crypto = require("crypto");
 const User = require("../models/User");
 const asyncHandler = require("../middleware/asyncHandler");
+const { sendEmail } = require("../utils/email");
+
+function passwordSetupLink(token) {
+  const clientUrl = (process.env.CLIENT_URL || "http://localhost:5173").split(",")[0].trim().replace(/\/$/, "");
+  return `${clientUrl}/school-office/access/password?token=${encodeURIComponent(token)}`;
+}
 
 exports.listUsers = asyncHandler(async (req, res) => {
   res.json(await User.find().select("-password").sort("name"));
@@ -9,11 +16,29 @@ exports.listUsers = asyncHandler(async (req, res) => {
 exports.createUser = asyncHandler(async (req, res) => {
   const schema = z.object({
     name: z.string().min(2),
-    email: z.string().email(),
-    password: z.string().min(8)
+    email: z.string().email()
   });
   const data = schema.parse(req.body);
-  const user = await User.create(data);
+  const token = crypto.randomBytes(32).toString("hex");
+  const user = await User.create({
+    ...data,
+    password: crypto.randomBytes(32).toString("hex"),
+    mustSetPassword: true,
+    resetPasswordToken: crypto.createHash("sha256").update(token).digest("hex"),
+    resetPasswordExpires: Date.now() + 60 * 60 * 1000
+  });
+  try {
+    const link = passwordSetupLink(token);
+    const result = await sendEmail({
+      to: user.email,
+      subject: "Set up your admin account",
+      text: `Hello ${user.name},\n\nYour admin account is ready. Use this one-time link within one hour to set your password: ${link}`
+    });
+    if (!result.delivered) throw new Error("Email delivery is not configured");
+  } catch (error) {
+    await User.deleteOne({ _id: user._id });
+    return res.status(503).json({ message: "The setup email could not be sent. Check the mail configuration and try again." });
+  }
   res.status(201).json({ id: user._id, name: user.name, email: user.email, role: user.role });
 });
 

@@ -1,4 +1,5 @@
 const { z } = require("zod");
+const crypto = require("crypto");
 const speakeasy = require("speakeasy");
 const qrcode = require("qrcode");
 const User = require("../models/User");
@@ -6,6 +7,12 @@ const AuditLog = require("../models/AuditLog");
 const asyncHandler = require("../middleware/asyncHandler");
 const signToken = require("../utils/token");
 const { clearAuthCookie, setAuthCookie } = require("../utils/authCookie");
+const { sendEmail } = require("../utils/email");
+
+const passwordLink = (token) => {
+  const clientUrl = (process.env.CLIENT_URL || "http://localhost:5173").split(",")[0].trim().replace(/\/$/, "");
+  return `${clientUrl}/school-office/access/password?token=${encodeURIComponent(token)}`;
+};
 
 const loginSchema = z.object({
   email: z.string().email(),
@@ -32,6 +39,9 @@ exports.login = asyncHandler(async (req, res) => {
   const user = await User.findOne({ email: email.toLowerCase() }).select("+password +twoFactorSecret");
   if (!user || !(await user.matchPassword(password))) {
     return res.status(401).json({ message: "Invalid email or password" });
+  }
+  if (user.mustSetPassword) {
+    return res.status(403).json({ message: "Use the password setup link sent to your email before signing in." });
   }
   if (user.twoFactorEnabled) {
     if (!token) return res.status(206).json({ twoFactorRequired: true, message: "Two-factor code required" });
@@ -69,6 +79,49 @@ exports.changePassword = asyncHandler(async (req, res) => {
   user.password = newPassword;
   await user.save();
   res.json({ message: "Password changed successfully" });
+});
+
+exports.forgotPassword = asyncHandler(async (req, res) => {
+  const { email } = z.object({ email: z.string().email() }).parse(req.body);
+  const user = await User.findOne({ email: email.toLowerCase() });
+  if (user) {
+    const token = crypto.randomBytes(32).toString("hex");
+    user.resetPasswordToken = crypto.createHash("sha256").update(token).digest("hex");
+    user.resetPasswordExpires = Date.now() + 60 * 60 * 1000;
+    await user.save();
+    try {
+      const link = passwordLink(token);
+      const isSetup = user.mustSetPassword;
+      await sendEmail({
+        to: user.email,
+        subject: isSetup ? "Set up your admin account" : "Reset your admin password",
+        text: `Use this one-time link within one hour to ${isSetup ? "set" : "reset"} your password: ${link}`
+      });
+    } catch (error) {
+      console.error("Password email failed:", error.message);
+    }
+  }
+  res.json({ message: "If an account exists for that email, a password link has been sent." });
+});
+
+exports.resetPassword = asyncHandler(async (req, res) => {
+  const { token, password } = z.object({
+    token: z.string().min(1),
+    password: z.string().min(8)
+  }).parse(req.body);
+  const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
+  const user = await User.findOne({
+    resetPasswordToken: hashedToken,
+    resetPasswordExpires: { $gt: Date.now() }
+  }).select("+password +resetPasswordToken +resetPasswordExpires");
+  if (!user) return res.status(400).json({ message: "This password link is invalid or has expired." });
+
+  user.password = password;
+  user.mustSetPassword = false;
+  user.resetPasswordToken = undefined;
+  user.resetPasswordExpires = undefined;
+  await user.save();
+  res.json({ message: "Password set successfully. You can now sign in." });
 });
 
 // --- Two-factor authentication ---------------------------------------------
