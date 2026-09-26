@@ -12,7 +12,7 @@ function passwordEmail({ name, link, firstLogin = false }) {
   const safeName = escapeHtml(name || "there");
   const safeLink = escapeHtml(link);
   const subject = firstLogin ? "Set up your COCIN Academy account" : "Reset your COCIN Academy password";
-  const action = firstLogin ? "Choose a password" : "Reset password";
+  const action = firstLogin ? "Set your password" : "Reset password";
   const explanation = firstLogin
     ? "Your COCIN Academy admin account is ready. Set a password to activate your access."
     : "We received a request to reset the password for your COCIN Academy admin account.";
