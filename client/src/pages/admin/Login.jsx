@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { Navigate, useNavigate } from "react-router-dom";
+import { Link, Navigate, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import { useAuth } from "../../context/AuthContext";
+import { ADMIN_LOGIN_PATH } from "../../config/admin";
 
 export default function Login() {
   const { login, user } = useAuth();
@@ -37,6 +38,9 @@ export default function Login() {
           <span className="label">Password</span>
           <input className="input" type="password" autoComplete="current-password" {...register("password", { required: true })} />
         </label>
+        <div className="mt-3 text-right">
+          <Link className="text-sm font-semibold text-blue-700 hover:underline" to={`${ADMIN_LOGIN_PATH}/password`}>Forgot password?</Link>
+        </div>
         {needsTwoFactor && (
           <label className="mt-4 block">
             <span className="label">Two-factor code</span>

@@ -16,7 +16,7 @@ if (configured) {
 // console in development) so flows like password reset still work locally.
 async function sendEmail({ to, subject, text, html }) {
   if (!configured) {
-    console.info(`[email:disabled] To: ${to} | ${subject}\n${text || ""}`);
+    console.info(`[email:disabled] To: ${to} | ${subject}`);
     return { delivered: false };
   }
   const from = process.env.SMTP_FROM || `School CMS <${process.env.SMTP_USER}>`;

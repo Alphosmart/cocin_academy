@@ -1,9 +1,11 @@
 const router = require("express").Router();
 const auth = require("../controllers/authController");
 const { protect, adminOnly, optionalAuth } = require("../middleware/auth");
-const { adminRateLimit, loginRateLimit } = require("../middleware/security");
+const { adminRateLimit, loginRateLimit, passwordResetRateLimit } = require("../middleware/security");
 
 router.post("/login", loginRateLimit, auth.login);
+router.post("/password/forgot", passwordResetRateLimit, auth.forgotPassword);
+router.post("/password/reset", passwordResetRateLimit, auth.resetPassword);
 router.post("/logout", adminRateLimit, optionalAuth, auth.logout);
 router.get("/me", protect, adminOnly, auth.me);
 router.put("/change-password", adminRateLimit, protect, adminOnly, auth.changePassword);

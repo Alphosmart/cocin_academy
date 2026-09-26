@@ -19,6 +19,7 @@ import Contact from "./pages/public/Contact";
 import Portal from "./pages/public/Portal";
 import NotFound from "./pages/public/NotFound";
 import Login from "./pages/admin/Login";
+import PasswordReset from "./pages/admin/PasswordReset";
 import Dashboard from "./pages/admin/Dashboard";
 import Messages from "./pages/admin/Messages";
 import AdmissionApplications from "./pages/admin/AdmissionApplications";
@@ -67,6 +68,7 @@ export default function App() {
         <Route path="privacy-policy" element={<SimplePage slug="privacy-policy" />} />
       </Route>
       <Route path={ADMIN_LOGIN_ROUTE} element={<Login />} />
+      <Route path={`${ADMIN_LOGIN_ROUTE}/password`} element={<PasswordReset />} />
       <Route element={<ProtectedRoute />}>
         <Route path="/admin" element={<AdminLayout />}>
           <Route index element={<Dashboard />} />
