@@ -8,6 +8,7 @@ const asyncHandler = require("../middleware/asyncHandler");
 const signToken = require("../utils/token");
 const { clearAuthCookie, setAuthCookie } = require("../utils/authCookie");
 const { sendEmail } = require("../utils/email");
+const passwordEmail = require("../utils/passwordEmail");
 
 const passwordLink = (token) => {
   const clientUrl = (process.env.CLIENT_URL || "http://localhost:5173").split(",")[0].trim().replace(/\/$/, "");
@@ -92,11 +93,8 @@ exports.forgotPassword = asyncHandler(async (req, res) => {
     try {
       const link = passwordLink(token);
       const isSetup = user.mustSetPassword;
-      await sendEmail({
-        to: user.email,
-        subject: isSetup ? "Set up your admin account" : "Reset your admin password",
-        text: `Use this one-time link within one hour to ${isSetup ? "set" : "reset"} your password: ${link}`
-      });
+      const message = passwordEmail({ name: user.name, link, firstLogin: isSetup });
+      await sendEmail({ to: user.email, ...message });
     } catch (error) {
       console.error("Password email failed:", error.message);
     }

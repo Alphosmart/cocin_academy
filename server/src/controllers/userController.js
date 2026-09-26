@@ -3,6 +3,7 @@ const crypto = require("crypto");
 const User = require("../models/User");
 const asyncHandler = require("../middleware/asyncHandler");
 const { sendEmail } = require("../utils/email");
+const passwordEmail = require("../utils/passwordEmail");
 
 function passwordSetupLink(token) {
   const clientUrl = (process.env.CLIENT_URL || "http://localhost:5173").split(",")[0].trim().replace(/\/$/, "");
@@ -29,11 +30,8 @@ exports.createUser = asyncHandler(async (req, res) => {
   });
   try {
     const link = passwordSetupLink(token);
-    const result = await sendEmail({
-      to: user.email,
-      subject: "Set up your admin account",
-      text: `Hello ${user.name},\n\nYour admin account is ready. Use this one-time link within one hour to set your password: ${link}`
-    });
+    const message = passwordEmail({ name: user.name, link, firstLogin: true });
+    const result = await sendEmail({ to: user.email, ...message });
     if (!result.delivered) throw new Error("Email delivery is not configured");
   } catch (error) {
     await User.deleteOne({ _id: user._id });
